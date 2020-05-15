@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class MsgReceiver {
-    @RabbitListener(queues = "${keyword.topic}")
+    @RabbitListener(queues = "${keyword.queue}")
     public void onMessage(String Msg) {
         log.info("received message: {}", Msg);
     }
