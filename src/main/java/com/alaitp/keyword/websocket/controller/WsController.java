@@ -13,13 +13,11 @@ import java.text.SimpleDateFormat;
 @Slf4j
 @Controller
 public class WsController {
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
-    private static final DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss sss");
+
     //映射客户端"/hello"请求
-    @MessageMapping(value = "/hello")
+    @MessageMapping(value = "/keyword")
     //向订阅了"/topic/hello"主题的客户端广播消息
-    @SendTo(value = "/topic/hello")
+    @SendTo(value = "/topic/keyword")
     public String responseMsg(String msg) {  //msg->客户端传来的消息
         return msg + "world";
     }
