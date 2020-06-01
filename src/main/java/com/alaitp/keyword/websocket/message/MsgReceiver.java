@@ -11,7 +11,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @Component
@@ -20,22 +24,33 @@ public class MsgReceiver {
     private String pubSubDestinationPrefix;
     @Value("${keyword.destination}")
     private String keywordDestination;
+    @Value("${available.keyword.category}")
+    private String categories;
+    private Set<String> availableCategories;
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
     @Autowired
     private KeywordCache keywordCache;
 
-    private String category = "PROGRAMMING_LANGUAGE";
+    @PostConstruct
+    void init() {
+        availableCategories = new HashSet<>();
+        availableCategories.addAll(Arrays.asList(categories.split(",")));
+    }
 
     @RabbitListener(queues = "${keyword.queue}")
     public void onMessage(String msg) {
         log.info("received message: {}", msg);
         JobKeywordDto jobKeywordDto = JSON.parseObject(msg, JobKeywordDto.class);
         keywordCache.addKeyword(jobKeywordDto);
-        Map<String, Object[]> res = keywordCache.getTopKeywordByCategory(category);
-        JSONObject jsonObject = JSON.parseObject(JSON.toJSONString(res));
-        jsonObject.put("category", category);
-        messagingTemplate.convertAndSend(pubSubDestinationPrefix + keywordDestination, jsonObject);
-        log.info("sent message: {}", jsonObject);
+        for (String category: jobKeywordDto.categories()) {
+            if (availableCategories.contains(category)) {
+                Map<String, Object[]> res = keywordCache.getTopKeywordByCategory(category);
+                JSONObject jsonObject = JSON.parseObject(JSON.toJSONString(res));
+                jsonObject.put("category", category);
+                messagingTemplate.convertAndSend(pubSubDestinationPrefix + keywordDestination, jsonObject);
+                log.info("sent message: {}", jsonObject);
+            }
+        }
     }
 }
