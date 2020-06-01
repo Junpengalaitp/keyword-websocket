@@ -13,7 +13,14 @@ import java.util.stream.Collectors;
 public class KeywordCache {
     private Map<String, Map<String, Integer>> keywordCategoryMap = new HashMap<>();
 
+    private String requestId = null;
+
     public void addKeyword(JobKeywordDto jobKeywordDto) {
+        if (!jobKeywordDto.getRequestId().equals(requestId)) {
+            keywordCategoryMap.clear();
+        }
+        requestId = jobKeywordDto.getRequestId();
+
         List<JobKeywordDto.KeywordDto> keywordDtoList = jobKeywordDto.getKeywordList();
         for (JobKeywordDto.KeywordDto keywordDto : keywordDtoList) {
             String category = keywordDto.getCategory();
@@ -38,14 +45,14 @@ public class KeywordCache {
         if (keywordCount == null || keywordCount.isEmpty()) {
             return res;
         }
-        Map<String, Integer> topTen = keywordCount.entrySet().stream()
+        Map<String, Integer> topFive = keywordCount.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .limit(5)
                 .collect(Collectors.toMap(
                         Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
-        Object[] keywords = topTen.keySet().toArray();
+        Object[] keywords = topFive.keySet().toArray();
         ArrayUtils.reverse(keywords);
-        Object[] counts = topTen.values().toArray();
+        Object[] counts = topFive.values().toArray();
         ArrayUtils.reverse(counts);
         res.put("keyword", keywords);
         res.put("count", counts);

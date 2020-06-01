@@ -9,10 +9,11 @@ import java.util.Set;
 @Data
 public class JobKeywordDto {
     private String jobId;
+    private String requestId;
     private List<KeywordDto> keywordList;
 
     @Data
-    public class KeywordDto {
+    public static class KeywordDto {
         private String keyword;
         private String category;
         private String startIdx;
