@@ -3,6 +3,7 @@ package com.alaitp.keyword.websocket.message;
 import com.alaitp.keyword.websocket.cache.KeywordCache;
 import com.alaitp.keyword.websocket.dto.JobKeywordDto;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,13 +25,17 @@ public class MsgReceiver {
     @Autowired
     private KeywordCache keywordCache;
 
+    private String category = "PROGRAMMING_LANGUAGE";
+
     @RabbitListener(queues = "${keyword.queue}")
     public void onMessage(String msg) {
         log.info("received message: {}", msg);
         JobKeywordDto jobKeywordDto = JSON.parseObject(msg, JobKeywordDto.class);
         keywordCache.addKeyword(jobKeywordDto);
-        Map<String, Object[]> res = keywordCache.getTopKeywordByCategory("PROGRAMMING_LANGUAGE");
-        messagingTemplate.convertAndSend(pubSubDestinationPrefix + keywordDestination, res);
-        log.info("sent message: {}", res);
+        Map<String, Object[]> res = keywordCache.getTopKeywordByCategory(category);
+        JSONObject jsonObject = JSON.parseObject(JSON.toJSONString(res));
+        jsonObject.put("category", category);
+        messagingTemplate.convertAndSend(pubSubDestinationPrefix + keywordDestination, jsonObject);
+        log.info("sent message: {}", jsonObject);
     }
 }
