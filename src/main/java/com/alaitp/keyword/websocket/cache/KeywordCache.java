@@ -1,5 +1,6 @@
 package com.alaitp.keyword.websocket.cache;
 
+import com.alaitp.keyword.websocket.dto.ChartOptionDto;
 import com.alaitp.keyword.websocket.dto.JobKeywordDto;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.ArrayUtils;
@@ -39,11 +40,10 @@ public class KeywordCache {
             }
         }
     }
-    public Map<String, Object[]> getTopKeywordByCategory(String category) {
-        Map<String, Object[]> res = new HashMap<>();
+    public ChartOptionDto getTopKeywordByCategory(String category) {
         Map<String, Integer> keywordCount = keywordCategoryMap.get(category);
         if (keywordCount == null || keywordCount.isEmpty()) {
-            return res;
+            return null;
         }
         Map<String, Integer> topFive = keywordCount.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
@@ -54,8 +54,6 @@ public class KeywordCache {
         ArrayUtils.reverse(keywords);
         Object[] counts = topFive.values().toArray();
         ArrayUtils.reverse(counts);
-        res.put("keyword", keywords);
-        res.put("count", counts);
-        return res;
+        return new ChartOptionDto(keywords, counts, category);
     }
 }

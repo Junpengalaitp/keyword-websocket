@@ -1,9 +1,10 @@
 package com.alaitp.keyword.websocket.message;
 
 import com.alaitp.keyword.websocket.cache.KeywordCache;
+import com.alaitp.keyword.websocket.dto.ChartOptionDto;
 import com.alaitp.keyword.websocket.dto.JobKeywordDto;
+import com.alaitp.keyword.websocket.dto.JobMsgDto;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 @Slf4j
@@ -45,11 +45,10 @@ public class MsgReceiver {
         keywordCache.addKeyword(jobKeywordDto);
         for (String category: jobKeywordDto.categories()) {
             if (availableCategories.contains(category)) {
-                Map<String, Object[]> res = keywordCache.getTopKeywordByCategory(category);
-                JSONObject jsonObject = JSON.parseObject(JSON.toJSONString(res));
-                jsonObject.put("category", category);
-                messagingTemplate.convertAndSend(pubSubDestinationPrefix + keywordDestination, jsonObject);
-                log.info("sent message: {}", jsonObject);
+                ChartOptionDto chartOptionDto = keywordCache.getTopKeywordByCategory(category);
+                JobMsgDto jobMsgDto = new JobMsgDto(chartOptionDto, jobKeywordDto);
+                messagingTemplate.convertAndSend(pubSubDestinationPrefix + keywordDestination, jobMsgDto);
+                log.info("sent message: {}", jobMsgDto);
             }
         }
     }
