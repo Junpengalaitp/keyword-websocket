@@ -1,9 +1,7 @@
 package com.alaitp.keyword.websocket.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -12,6 +10,7 @@ public class JobKeywordDto {
     private String jobId;
     private String requestId;
     private List<KeywordDto> keywordList;
+    private Set<String> categoryList;
 
     @Data
     public static class KeywordDto {
@@ -19,14 +18,5 @@ public class JobKeywordDto {
         private String category;
         private String startIdx;
         private String endIdx;
-    }
-
-    @JsonIgnore
-    public Set<String> categories() {
-        Set<String> categories = new HashSet<>();
-        for (KeywordDto keywordDto: keywordList) {
-            categories.add(keywordDto.getCategory());
-        }
-        return categories;
     }
 }

@@ -31,7 +31,7 @@ public class MsgServiceImpl implements MsgService {
     @Override
     public JobMsgDto getJobKeywordMsg(JobKeywordDto jobKeywordDto) {
         List<ChartOptionDto> chartOptionDtos = new ArrayList<>();
-        for (String category: jobKeywordDto.categories()) {
+        for (String category: jobKeywordDto.getCategoryList()) {
             if (availableCategories.contains(category)) {
                 ChartOptionDto chartOptionDto = keywordCache.getTopKeywordByCategory(category);
                 chartOptionDtos.add(chartOptionDto);
