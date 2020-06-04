@@ -47,7 +47,7 @@ public class KeywordCache {
         }
         Map<String, Integer> topFive = keywordCount.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                .limit(5)
+                .limit(10)
                 .collect(Collectors.toMap(
                         Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
         Object[] keywords = topFive.keySet().toArray();
