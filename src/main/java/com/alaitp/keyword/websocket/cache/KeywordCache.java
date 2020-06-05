@@ -1,5 +1,6 @@
 package com.alaitp.keyword.websocket.cache;
 
+import com.alaitp.keyword.websocket.constant.Constant;
 import com.alaitp.keyword.websocket.dto.ChartOptionDto;
 import com.alaitp.keyword.websocket.dto.JobKeywordDto;
 import lombok.extern.slf4j.Slf4j;
@@ -25,12 +26,13 @@ public class KeywordCache {
         List<JobKeywordDto.KeywordDto> keywordDtoList = jobKeywordDto.getKeywordList();
         for (JobKeywordDto.KeywordDto keywordDto : keywordDtoList) {
             String category = keywordDto.getCategory();
+            String combinedCategory = Constant.combinedCategoryMap.getOrDefault(category, category);
             String keyword = keywordDto.getKeyword();
-            Map<String, Integer> keywordCount = keywordCategoryMap.get(category);
+            Map<String, Integer> keywordCount = keywordCategoryMap.get(combinedCategory);
             if (keywordCount == null) {
                 keywordCount = new HashMap<>();
                 keywordCount.put(keyword, 1);
-                keywordCategoryMap.put(category, keywordCount);
+                keywordCategoryMap.put(combinedCategory, keywordCount);
             } else {
                 if (keywordCount.get(keyword) == null) {
                     keywordCount.put(keyword, 1);
@@ -41,7 +43,8 @@ public class KeywordCache {
         }
     }
     public ChartOptionDto getTopKeywordByCategory(String category) {
-        Map<String, Integer> keywordCount = keywordCategoryMap.get(category);
+        String combinedCategory = Constant.combinedCategoryMap.getOrDefault(category, category);
+        Map<String, Integer> keywordCount = keywordCategoryMap.get(combinedCategory);
         if (keywordCount == null || keywordCount.isEmpty()) {
             return null;
         }
@@ -54,6 +57,6 @@ public class KeywordCache {
         ArrayUtils.reverse(keywords);
         Object[] counts = topFive.values().toArray();
         ArrayUtils.reverse(counts);
-        return new ChartOptionDto(keywords, counts, category);
+        return new ChartOptionDto(keywords, counts, combinedCategory);
     }
 }
