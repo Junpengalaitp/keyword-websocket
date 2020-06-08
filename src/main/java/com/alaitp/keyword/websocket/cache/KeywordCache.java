@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class KeywordCache {
-    private Map<String, Map<String, Integer>> keywordCategoryMap = new HashMap<>();
+    private final Map<String, Map<String, Integer>> keywordCategoryMap = new HashMap<>();
 
     private String requestId = null;
 
