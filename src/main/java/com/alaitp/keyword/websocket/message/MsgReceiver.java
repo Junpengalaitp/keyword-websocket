@@ -21,6 +21,10 @@ public class MsgReceiver {
     private final SimpMessagingTemplate messagingTemplate;
     private final KeywordCache keywordCache;
     private final MsgService msgService;
+    // time interval of send chart option message, avoiding front end rendering too often
+    private final int SEND_INTERVAL = 250;
+    Long lastSentTime = null;
+
 
     public MsgReceiver(SimpMessagingTemplate messagingTemplate, KeywordCache keywordCache, MsgService msgService) {
         this.messagingTemplate = messagingTemplate;
@@ -33,8 +37,11 @@ public class MsgReceiver {
         log.info("received message: {}", msg);
         JobKeywordDto jobKeywordDto = JSON.parseObject(msg, JobKeywordDto.class);
         keywordCache.addKeyword(jobKeywordDto);
-        JobMsgDto jobMsgDto = msgService.getJobKeywordMsg(jobKeywordDto);
-        messagingTemplate.convertAndSend(pubSubDestinationPrefix + keywordDestination, jobMsgDto);
-        log.info("sent message: {}", jobMsgDto);
+        if (lastSentTime == null || System.currentTimeMillis() - lastSentTime > SEND_INTERVAL) {
+            lastSentTime = System.currentTimeMillis();
+            JobMsgDto jobMsgDto = msgService.getJobKeywordMsg(jobKeywordDto);
+            messagingTemplate.convertAndSend(pubSubDestinationPrefix + keywordDestination, jobMsgDto);
+            log.info("sent message: {}", jobMsgDto);
+        }
     }
 }
