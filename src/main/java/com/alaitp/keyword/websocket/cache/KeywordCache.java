@@ -4,11 +4,9 @@ import com.alaitp.keyword.websocket.constant.Constant;
 import com.alaitp.keyword.websocket.dto.ChartOptionDto;
 import com.alaitp.keyword.websocket.dto.JobKeywordDto;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.ArrayUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -42,21 +40,27 @@ public class KeywordCache {
             }
         }
     }
-    public ChartOptionDto getTopKeywordByCategory(String category) {
+    public ChartOptionDto getTopKeywordByCategory(String category, int topK) {
         String combinedCategory = Constant.combinedCategoryMap.getOrDefault(category, category);
         Map<String, Integer> keywordCount = keywordCategoryMap.get(combinedCategory);
         if (keywordCount == null || keywordCount.isEmpty()) {
             return null;
         }
-        Map<String, Integer> topFive = keywordCount.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                .limit(10)
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
-        Object[] keywords = topFive.keySet().toArray();
-        ArrayUtils.reverse(keywords);
-        Object[] counts = topFive.values().toArray();
-        ArrayUtils.reverse(counts);
+        PriorityQueue<Map.Entry<String, Integer>> heap = new PriorityQueue<>(
+                Comparator.comparingInt(Map.Entry::getValue));
+        for (Map.Entry<String, Integer> entry: keywordCount.entrySet()) {
+            heap.offer(entry);
+            if (heap.size() > topK) {
+                heap.poll();
+            }
+        }
+        List<String> keywords = new ArrayList<>();
+        List<Integer> counts = new ArrayList<>();
+        while (!heap.isEmpty()) {
+            Map.Entry<String, Integer> entry = heap.poll();
+            keywords.add(entry.getKey());
+            counts.add(entry.getValue());
+        }
         return new ChartOptionDto(keywords, counts, combinedCategory);
     }
 }

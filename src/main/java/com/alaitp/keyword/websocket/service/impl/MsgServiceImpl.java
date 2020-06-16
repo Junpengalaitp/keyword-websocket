@@ -32,7 +32,7 @@ public class MsgServiceImpl implements MsgService {
     public JobMsgDto getJobKeywordMsg(JobKeywordDto jobKeywordDto) {
         List<ChartOptionDto> chartOptionDtos = new ArrayList<>();
         for (String category: availableCategories) {
-            ChartOptionDto chartOptionDto = keywordCache.getTopKeywordByCategory(category);
+            ChartOptionDto chartOptionDto = keywordCache.getTopKeywordByCategory(category, 10);
             chartOptionDtos.add(chartOptionDto);
         }
         return new JobMsgDto(chartOptionDtos, jobKeywordDto);
