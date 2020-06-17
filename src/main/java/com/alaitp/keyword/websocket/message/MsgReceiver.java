@@ -24,7 +24,8 @@ public class MsgReceiver {
     // time interval of send chart option message, avoiding front end rendering too often
     private final int SEND_INTERVAL = 250;
     Long lastSentTime = null;
-
+    private String currRequestId = null;
+    private int currJobCount = 0;
 
     public MsgReceiver(SimpMessagingTemplate messagingTemplate, KeywordCache keywordCache, MsgService msgService) {
         this.messagingTemplate = messagingTemplate;
@@ -34,8 +35,15 @@ public class MsgReceiver {
 
     @RabbitListener(queues = "${keyword.queue}")
     public void onMessage(String msg) {
-        log.info("received message: {}", msg);
+//        log.info("received message: {}", msg);
         JobKeywordDto jobKeywordDto = JSON.parseObject(msg, JobKeywordDto.class);
+        String requestId = jobKeywordDto.getRequestId();
+        if (currRequestId != null && !currRequestId.equals(requestId)) {
+            currJobCount = 0;
+        } else {
+            currJobCount++;
+            currRequestId = requestId;
+        }
         keywordCache.addKeyword(jobKeywordDto);
         if (lastSentTime == null || System.currentTimeMillis() - lastSentTime > SEND_INTERVAL) {
             lastSentTime = System.currentTimeMillis();
