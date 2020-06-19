@@ -29,12 +29,17 @@ public class MsgServiceImpl implements MsgService {
     }
 
     @Override
-    public JobMsgDto getJobKeywordMsg(JobKeywordDto jobKeywordDto) {
+    public List<ChartOptionDto> getChartOptions(JobKeywordDto jobKeywordDto) {
         List<ChartOptionDto> chartOptionDtos = new ArrayList<>();
         for (String category: availableCategories) {
             ChartOptionDto chartOptionDto = keywordCache.getTopKeywordByCategory(category, 10);
             chartOptionDtos.add(chartOptionDto);
         }
-        return new JobMsgDto(chartOptionDtos, jobKeywordDto);
+        return chartOptionDtos;
+    }
+
+    @Override
+    public JobMsgDto getPureJobKeywordMsg(JobKeywordDto jobKeywordDto) {
+        return new JobMsgDto(new ArrayList<>(), jobKeywordDto);
     }
 }

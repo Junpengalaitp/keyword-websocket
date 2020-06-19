@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+/**
+ * store job keywords to calculate chart options data for front end
+ */
 @Slf4j
 @Component
 public class KeywordCache {
