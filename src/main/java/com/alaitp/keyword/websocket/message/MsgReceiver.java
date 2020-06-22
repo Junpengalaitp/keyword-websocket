@@ -24,6 +24,7 @@ public class MsgReceiver {
     private final SimpMessagingTemplate messagingTemplate;
     private final KeywordCache keywordCache;
     private final MsgService msgService;
+    private final int minSecond = 5;
     private final int SEND_INTERVAL = 1000; // time interval of send chart option message, avoiding front end rendering too often
     Long lastSentTime = null;
 
@@ -39,6 +40,8 @@ public class MsgReceiver {
         if (Boolean.TRUE.equals(keywordJson.getBoolean("request_end"))) {
             log.info("all job processed, current request end, request id: " + keywordJson.getString("request_id"));
         }
+        int totalJobs = keywordJson.getInteger("total_job_count");
+        log.info("total jobs: " + totalJobs);
         JobKeywordDto jobKeywordDto = JSON.parseObject(msg, JobKeywordDto.class);
         sendJobKeyword(jobKeywordDto);
         keywordCache.addKeyword(jobKeywordDto);
