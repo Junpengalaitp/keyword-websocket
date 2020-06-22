@@ -3,7 +3,6 @@ package com.alaitp.keyword.websocket.service.impl;
 import com.alaitp.keyword.websocket.cache.KeywordCache;
 import com.alaitp.keyword.websocket.dto.ChartOptionDto;
 import com.alaitp.keyword.websocket.dto.JobKeywordDto;
-import com.alaitp.keyword.websocket.dto.JobMsgDto;
 import com.alaitp.keyword.websocket.service.MsgService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +37,4 @@ public class MsgServiceImpl implements MsgService {
         return chartOptionDtos;
     }
 
-    @Override
-    public JobMsgDto getPureJobKeywordMsg(JobKeywordDto jobKeywordDto) {
-        return new JobMsgDto(new ArrayList<>(), jobKeywordDto);
-    }
 }

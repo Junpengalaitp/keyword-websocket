@@ -24,7 +24,7 @@ public class MsgReceiver {
     private final SimpMessagingTemplate messagingTemplate;
     private final KeywordCache keywordCache;
     private final MsgService msgService;
-    private final int SEND_INTERVAL = 250; // time interval of send chart option message, avoiding front end rendering too often
+    private final int SEND_INTERVAL = 1000; // time interval of send chart option message, avoiding front end rendering too often
     Long lastSentTime = null;
 
     public MsgReceiver(SimpMessagingTemplate messagingTemplate, KeywordCache keywordCache, MsgService msgService) {
@@ -35,6 +35,10 @@ public class MsgReceiver {
 
     @RabbitListener(queues = "${keyword.queue}")
     public void onMessage(String msg) {
+        JSONObject keywordJson = JSON.parseObject(msg);
+        if (Boolean.TRUE.equals(keywordJson.getBoolean("request_end"))) {
+            log.info("all job processed, current request end, request id: " + keywordJson.getString("request_id"));
+        }
         JobKeywordDto jobKeywordDto = JSON.parseObject(msg, JobKeywordDto.class);
         sendJobKeyword(jobKeywordDto);
         keywordCache.addKeyword(jobKeywordDto);
