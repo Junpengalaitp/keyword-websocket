@@ -4,7 +4,6 @@ import com.alaitp.keyword.websocket.constant.Constant;
 import com.alaitp.keyword.websocket.dto.ChartOptionDto;
 import com.alaitp.keyword.websocket.dto.JobKeywordDto;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.util.*;
 
@@ -12,7 +11,6 @@ import java.util.*;
  * store job keywords to calculate chart options data for front end
  */
 @Slf4j
-@Component
 public class KeywordCache {
     private final Map<String, Map<String, Integer>> keywordCategoryMap = new HashMap<>();
 

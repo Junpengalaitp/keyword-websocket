@@ -23,4 +23,6 @@ public class Constant {
             entry("COMPUTER_SCIENCE", "computerScience"),
             entry("AI", "computerScience")
     );
+
+    public static final int ONE_SEC = 1000;
 }
