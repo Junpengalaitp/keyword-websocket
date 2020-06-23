@@ -24,9 +24,10 @@ public class MsgReceiver {
     private final SimpMessagingTemplate messagingTemplate;
     private final KeywordCache keywordCache;
     private final MsgService msgService;
-    private final int minSecond = 5;
+    private final int MIN_SECOND = 5;  // the minimal seconds for sending chart options, for keeping chart race visual effect
     private final int SEND_INTERVAL = 1000; // time interval of send chart option message, avoiding front end rendering too often
     Long lastSentTime = null;
+    String currentRequestId = null;
 
     public MsgReceiver(SimpMessagingTemplate messagingTemplate, KeywordCache keywordCache, MsgService msgService) {
         this.messagingTemplate = messagingTemplate;
