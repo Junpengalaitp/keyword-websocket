@@ -2,7 +2,6 @@ package com.alaitp.keyword.websocket.service.impl;
 
 import com.alaitp.keyword.websocket.cache.KeywordCache;
 import com.alaitp.keyword.websocket.dto.ChartOptionDto;
-import com.alaitp.keyword.websocket.dto.JobKeywordDto;
 import com.alaitp.keyword.websocket.service.MsgService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +27,7 @@ public class MsgServiceImpl implements MsgService {
     }
 
     @Override
-    public List<ChartOptionDto> getChartOptions(JobKeywordDto jobKeywordDto) {
+    public List<ChartOptionDto> getChartOptions() {
         List<ChartOptionDto> chartOptionDtos = new ArrayList<>();
         for (String category: availableCategories) {
             ChartOptionDto chartOptionDto = keywordCache.getTopKeywordByCategory(category, 10);
@@ -36,5 +35,4 @@ public class MsgServiceImpl implements MsgService {
         }
         return chartOptionDtos;
     }
-
 }

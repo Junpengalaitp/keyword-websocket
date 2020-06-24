@@ -13,34 +13,43 @@ import java.util.*;
 @Slf4j
 public class KeywordCache {
     private final Map<String, Map<String, Integer>> keywordCategoryMap = new HashMap<>();
+    // when receiving JobKeywordDto out of sending interval, add to pending list and use them in the next sending interval
+    private List<JobKeywordDto> pendingList = new ArrayList<>();
 
-    private String requestId = null;
+    private int sendingInterval;
+    private Long lastSentTime = null;
+
+    public KeywordCache(int sendingInterval) {
+        this.sendingInterval = sendingInterval;
+    }
 
     public void addKeyword(JobKeywordDto jobKeywordDto) {
-        if (!jobKeywordDto.getRequestId().equals(requestId)) {
-            keywordCategoryMap.clear();
+        pendingList.add(jobKeywordDto);
+        if (lastSentTime != null && betweenInterval()) {
+            return;
         }
-        requestId = jobKeywordDto.getRequestId();
-
-        List<JobKeywordDto.KeywordDto> keywordDtoList = jobKeywordDto.getKeywordList();
-        for (JobKeywordDto.KeywordDto keywordDto : keywordDtoList) {
-            String category = keywordDto.getCategory();
-            String combinedCategory = Constant.combinedCategoryMap.getOrDefault(category, category);
-            String keyword = keywordDto.getKeyword();
-            Map<String, Integer> keywordCount = keywordCategoryMap.get(combinedCategory);
-            if (keywordCount == null) {
-                keywordCount = new HashMap<>();
-                keywordCount.put(keyword, 1);
-                keywordCategoryMap.put(combinedCategory, keywordCount);
-            } else {
-                if (keywordCount.get(keyword) == null) {
+        for (JobKeywordDto pendingJobKeywordDto: pendingList) {
+            List<JobKeywordDto.KeywordDto> keywordDtoList = pendingJobKeywordDto.getKeywordList();
+            for (JobKeywordDto.KeywordDto keywordDto : keywordDtoList) {
+                String category = keywordDto.getCategory();
+                String combinedCategory = Constant.combinedCategoryMap.getOrDefault(category, category);
+                String keyword = keywordDto.getKeyword();
+                Map<String, Integer> keywordCount = keywordCategoryMap.get(combinedCategory);
+                if (keywordCount == null) {
+                    keywordCount = new HashMap<>();
                     keywordCount.put(keyword, 1);
+                    keywordCategoryMap.put(combinedCategory, keywordCount);
                 } else {
-                    keywordCount.put(keyword, keywordCount.get(keyword) + 1);
+                    if (keywordCount.get(keyword) == null) {
+                        keywordCount.put(keyword, 1);
+                    } else {
+                        keywordCount.put(keyword, keywordCount.get(keyword) + 1);
+                    }
                 }
             }
         }
     }
+
     public ChartOptionDto getTopKeywordByCategory(String category, int topK) {
         String combinedCategory = Constant.combinedCategoryMap.getOrDefault(category, category);
         Map<String, Integer> keywordCount = keywordCategoryMap.get(combinedCategory);
@@ -63,5 +72,21 @@ public class KeywordCache {
             counts.add(entry.getValue());
         }
         return new ChartOptionDto(keywords, counts, combinedCategory);
+    }
+
+    public boolean isEmpty() {
+        if (keywordCategoryMap.isEmpty()) {
+            return true;
+        }
+        for (Map<String, Integer> map: keywordCategoryMap.values()) {
+            if (!map.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean betweenInterval() {
+        return System.currentTimeMillis() - lastSentTime < this.sendingInterval;
     }
 }
