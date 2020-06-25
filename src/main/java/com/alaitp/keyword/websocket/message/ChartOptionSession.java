@@ -1,66 +1,62 @@
 package com.alaitp.keyword.websocket.message;
 
+import com.alaitp.keyword.websocket.ApplicationContextProvider;
 import com.alaitp.keyword.websocket.cache.KeywordCache;
 import com.alaitp.keyword.websocket.dto.ChartOptionDto;
 import com.alaitp.keyword.websocket.dto.JobKeywordDto;
-import com.alaitp.keyword.websocket.service.MsgService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.*;
-
-import static com.alaitp.keyword.websocket.constant.Constant.ONE_SEC;
 
 /**
  * each request id have it's own chart option sending session
  */
 @Slf4j
 @Data
-@Component
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ChartOptionSession {
-    @Value("${pub-sub.destination.prefix}")
-    private String pubSubDestinationPrefix;
-    @Value("${keyword.destination}")
-    private String keywordDestination;
-    @Value("${available.keyword.category}")
-    private String categories;
-    private Set<String> availableCategories;
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
-    @Autowired
-    private MsgService msgService;
-    private final int MIN_SECOND = 5;  // the minimal seconds for sending chart options, for keeping chart race visual effect
-    private final int SEND_INTERVAL = 1000; // time interval of send chart option message, avoiding front end rendering too often
-    private int maxJobCountPerInterval;  // the max job chart option processed each sending interval
-    @PostConstruct
-    void init() {
-        availableCategories = new HashSet<>();
-        availableCategories.addAll(Arrays.asList(categories.split(",")));
-    }
+//    @Value("${pub-sub.destination.prefix}")
+    private String pubSubDestinationPrefix = "/topic";
+//    @Value("${keyword.destination}")
+    private String keywordDestination = "/keyword";
+//    @Value("${available.keyword.category}")
+    private String categories = "PROGRAMMING_LANGUAGE,OTHER_LANGUAGE,LIBRARY,FRAMEWORK,DATA_STORAGE,DATA_TRANSMISSION,DIVISION,PLATFORM,APPROACH,SOFTWARE_ENGINEERING,GENERAL,SOFT_SKILL,PROTOCOL,COMPUTER_SCIENCE,AI";
 
+    private Set<String> availableCategories;
+    private SimpMessagingTemplate messagingTemplate = ApplicationContextProvider.getBean(SimpMessagingTemplate.class);
+    private Long lastSendTime = null;
+    private final int SEND_INTERVAL = 1000; // time interval of send chart option message, avoiding front end rendering too often
+    private final int MIN_INTERVALS = 5;  // the minimal seconds for sending chart options, for keeping chart race visual effect
+    private int maxJobCountPerInterval;  // the max job chart option processed each sending interval
+    private boolean started = false;
 
     public ChartOptionSession(int totalJobs) {
-        this.maxJobCountPerInterval = totalJobs / SEND_INTERVAL / ONE_SEC / MIN_SECOND;
+        this.availableCategories = new HashSet<>();
+        this.availableCategories.addAll(Arrays.asList(categories.split(",")));
+        this.maxJobCountPerInterval = totalJobs / MIN_INTERVALS;
     }
 
-    private KeywordCache keywordCache = new KeywordCache(SEND_INTERVAL);
+    private KeywordCache keywordCache = new KeywordCache();
 
     public void cacheKeyword(JobKeywordDto jobKeywordDto) {
         keywordCache.addKeyword(jobKeywordDto);
+        checkSend();
     }
 
-    public void sendChartOption(JobKeywordDto jobKeywordDto) {
-        List<ChartOptionDto> chartOptions = msgService.getChartOptions();
-        messagingTemplate.convertAndSend(pubSubDestinationPrefix + keywordDestination, chartOptions);
-        log.info("send chart option: {}", chartOptions);
+    public void checkSend() {
+        if (lastSendTime != null && System.currentTimeMillis() - lastSendTime < SEND_INTERVAL) {
+            return;
+        }
+        if (keywordCache.size() >= maxJobCountPerInterval) {
+            for (int i = 0; i < maxJobCountPerInterval; i++) {
+                keywordCache.processPendingJobKeyword();
+            }
+            List<ChartOptionDto> chartOptions = getChartOptions();
+            messagingTemplate.convertAndSend(pubSubDestinationPrefix + keywordDestination, chartOptions);
+            log.info("chart option sent: " + chartOptions);
+            lastSendTime = System.currentTimeMillis();
+        }
     }
 
     private List<ChartOptionDto> getChartOptions() {
@@ -70,13 +66,5 @@ public class ChartOptionSession {
             chartOptionDtos.add(chartOptionDto);
         }
         return chartOptionDtos;
-    }
-
-    public void timer() {
-        // checking per sending interval
-        // if pending jobs larger than maxJobCountPerInterval, send the maxJobCountPerInterval amount of jobs
-        while (!keywordCache.isEmpty()) {
-
-        }
     }
 }

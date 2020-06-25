@@ -6,6 +6,7 @@ import com.alaitp.keyword.websocket.dto.JobKeywordDto;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * store job keywords to calculate chart options data for front end
@@ -14,37 +15,35 @@ import java.util.*;
 public class KeywordCache {
     private final Map<String, Map<String, Integer>> keywordCategoryMap = new HashMap<>();
     // when receiving JobKeywordDto out of sending interval, add to pending list and use them in the next sending interval
-    private List<JobKeywordDto> pendingList = new ArrayList<>();
+    private ConcurrentLinkedQueue<JobKeywordDto> pendingList = new ConcurrentLinkedQueue<>();
 
-    private int sendingInterval;
     private Long lastSentTime = null;
 
-    public KeywordCache(int sendingInterval) {
-        this.sendingInterval = sendingInterval;
+    public void addKeyword(JobKeywordDto jobKeywordDto) {
+        pendingList.offer(jobKeywordDto);
     }
 
-    public void addKeyword(JobKeywordDto jobKeywordDto) {
-        pendingList.add(jobKeywordDto);
-        if (lastSentTime != null && betweenInterval()) {
-            return;
-        }
-        for (JobKeywordDto pendingJobKeywordDto: pendingList) {
-            List<JobKeywordDto.KeywordDto> keywordDtoList = pendingJobKeywordDto.getKeywordList();
-            for (JobKeywordDto.KeywordDto keywordDto : keywordDtoList) {
-                String category = keywordDto.getCategory();
-                String combinedCategory = Constant.combinedCategoryMap.getOrDefault(category, category);
-                String keyword = keywordDto.getKeyword();
-                Map<String, Integer> keywordCount = keywordCategoryMap.get(combinedCategory);
-                if (keywordCount == null) {
-                    keywordCount = new HashMap<>();
+    public void processPendingJobKeyword() {
+        JobKeywordDto jobKeywordDto = pendingList.poll();
+        addJobKeywordToMap(jobKeywordDto);
+    }
+
+    public void addJobKeywordToMap(JobKeywordDto jobKeywordDto) {
+        List<JobKeywordDto.KeywordDto> keywordDtoList = jobKeywordDto.getKeywordList();
+        for (JobKeywordDto.KeywordDto keywordDto : keywordDtoList) {
+            String category = keywordDto.getCategory();
+            String combinedCategory = Constant.combinedCategoryMap.getOrDefault(category, category);
+            String keyword = keywordDto.getKeyword();
+            Map<String, Integer> keywordCount = keywordCategoryMap.get(combinedCategory);
+            if (keywordCount == null) {
+                keywordCount = new HashMap<>();
+                keywordCount.put(keyword, 1);
+                keywordCategoryMap.put(combinedCategory, keywordCount);
+            } else {
+                if (keywordCount.get(keyword) == null) {
                     keywordCount.put(keyword, 1);
-                    keywordCategoryMap.put(combinedCategory, keywordCount);
                 } else {
-                    if (keywordCount.get(keyword) == null) {
-                        keywordCount.put(keyword, 1);
-                    } else {
-                        keywordCount.put(keyword, keywordCount.get(keyword) + 1);
-                    }
+                    keywordCount.put(keyword, keywordCount.get(keyword) + 1);
                 }
             }
         }
@@ -75,18 +74,10 @@ public class KeywordCache {
     }
 
     public boolean isEmpty() {
-        if (keywordCategoryMap.isEmpty()) {
-            return true;
-        }
-        for (Map<String, Integer> map: keywordCategoryMap.values()) {
-            if (!map.isEmpty()) {
-                return false;
-            }
-        }
-        return true;
+        return pendingList.isEmpty();
     }
 
-    private boolean betweenInterval() {
-        return System.currentTimeMillis() - lastSentTime < this.sendingInterval;
+    public int size() {
+        return pendingList.size();
     }
 }
