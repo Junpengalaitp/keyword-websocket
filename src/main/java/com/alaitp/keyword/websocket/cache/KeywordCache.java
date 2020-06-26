@@ -6,25 +6,32 @@ import com.alaitp.keyword.websocket.dto.JobKeywordDto;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * store job keywords to calculate chart options data for front end
  */
 @Slf4j
 public class KeywordCache {
-    private final Map<String, Map<String, Integer>> keywordCategoryMap = new HashMap<>();
+    // the map to get chart options
+    private final ConcurrentMap<String, ConcurrentMap<String, Integer>> keywordChartOptionMap = new ConcurrentHashMap<>();
+
     // when receiving JobKeywordDto out of sending interval, add to pending list and use them in the next sending interval
     private ConcurrentLinkedQueue<JobKeywordDto> pendingList = new ConcurrentLinkedQueue<>();
 
-    private Long lastSentTime = null;
 
-    public void addKeyword(JobKeywordDto jobKeywordDto) {
+    public void addPendingKeyword(JobKeywordDto jobKeywordDto) {
         pendingList.offer(jobKeywordDto);
     }
 
+    public void addSendingKeyword(JobKeywordDto jobKeywordDto) {
+        addJobKeywordToMap(jobKeywordDto);
+    }
+
     public void processPendingJobKeyword() {
-        JobKeywordDto jobKeywordDto = pendingList.poll();
+        JobKeywordDto jobKeywordDto = pendingList.remove();
         addJobKeywordToMap(jobKeywordDto);
     }
 
@@ -34,11 +41,11 @@ public class KeywordCache {
             String category = keywordDto.getCategory();
             String combinedCategory = Constant.combinedCategoryMap.getOrDefault(category, category);
             String keyword = keywordDto.getKeyword();
-            Map<String, Integer> keywordCount = keywordCategoryMap.get(combinedCategory);
+            ConcurrentMap<String, Integer> keywordCount = keywordChartOptionMap.get(combinedCategory);
             if (keywordCount == null) {
-                keywordCount = new HashMap<>();
+                keywordCount = new ConcurrentHashMap<>();
                 keywordCount.put(keyword, 1);
-                keywordCategoryMap.put(combinedCategory, keywordCount);
+                keywordChartOptionMap.put(combinedCategory, keywordCount);
             } else {
                 if (keywordCount.get(keyword) == null) {
                     keywordCount.put(keyword, 1);
@@ -51,7 +58,7 @@ public class KeywordCache {
 
     public ChartOptionDto getTopKeywordByCategory(String category, int topK) {
         String combinedCategory = Constant.combinedCategoryMap.getOrDefault(category, category);
-        Map<String, Integer> keywordCount = keywordCategoryMap.get(combinedCategory);
+        Map<String, Integer> keywordCount = keywordChartOptionMap.get(combinedCategory);
         if (keywordCount == null || keywordCount.isEmpty()) {
             return null;
         }
@@ -73,11 +80,11 @@ public class KeywordCache {
         return new ChartOptionDto(keywords, counts, combinedCategory);
     }
 
-    public boolean isEmpty() {
+    public boolean pendingEmpty() {
         return pendingList.isEmpty();
     }
 
-    public int size() {
+    public int pendingSize() {
         return pendingList.size();
     }
 }
