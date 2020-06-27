@@ -19,7 +19,7 @@ public class KeywordCache {
     private final ConcurrentMap<String, ConcurrentMap<String, Integer>> keywordChartOptionMap = new ConcurrentHashMap<>();
 
     // when receiving JobKeywordDto out of sending interval, add to pending list and use them in the next sending interval
-    private ConcurrentLinkedQueue<JobKeywordDto> pendingList = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<JobKeywordDto> pendingList = new ConcurrentLinkedQueue<>();
 
 
     public void addPendingKeyword(JobKeywordDto jobKeywordDto) {
@@ -27,35 +27,33 @@ public class KeywordCache {
     }
 
     public void addSendingKeyword(JobKeywordDto jobKeywordDto) {
-        addJobKeywordToMap(jobKeywordDto);
+        addJobKeywordByCategory(jobKeywordDto);
     }
 
     public void processPendingJobKeyword() {
         JobKeywordDto jobKeywordDto = pendingList.remove();
-        addJobKeywordToMap(jobKeywordDto);
+        addJobKeywordByCategory(jobKeywordDto);
     }
 
-    public void addJobKeywordToMap(JobKeywordDto jobKeywordDto) {
+    /**
+     * add individual keyword to the category map for generating top 10 frequent keywords for each category
+     */
+    public void addJobKeywordByCategory(JobKeywordDto jobKeywordDto) {
         List<JobKeywordDto.KeywordDto> keywordDtoList = jobKeywordDto.getKeywordList();
         for (JobKeywordDto.KeywordDto keywordDto : keywordDtoList) {
             String category = keywordDto.getCategory();
             String combinedCategory = Constant.combinedCategoryMap.getOrDefault(category, category);
             String keyword = keywordDto.getKeyword();
+            keywordChartOptionMap.putIfAbsent(combinedCategory, new ConcurrentHashMap<>());
             ConcurrentMap<String, Integer> keywordCount = keywordChartOptionMap.get(combinedCategory);
-            if (keywordCount == null) {
-                keywordCount = new ConcurrentHashMap<>();
-                keywordCount.put(keyword, 1);
-                keywordChartOptionMap.put(combinedCategory, keywordCount);
-            } else {
-                if (keywordCount.get(keyword) == null) {
-                    keywordCount.put(keyword, 1);
-                } else {
-                    keywordCount.put(keyword, keywordCount.get(keyword) + 1);
-                }
-            }
+            keywordCount.putIfAbsent(keyword, 1);
+            keywordCount.put(keyword, keywordCount.get(keyword) + 1);
         }
     }
 
+    /**
+     * use binary heap to find the top K frequent keywords for the category
+     */
     public ChartOptionDto getTopKeywordByCategory(String category, int topK) {
         String combinedCategory = Constant.combinedCategoryMap.getOrDefault(category, category);
         Map<String, Integer> keywordCount = keywordChartOptionMap.get(combinedCategory);

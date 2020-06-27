@@ -1,10 +1,39 @@
 package com.alaitp.keyword.websocket.constant;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Map.entry;
 
+@Component
 public class Constant {
+    @Value("${pub-sub.destination.prefix}")
+    private String pubSubDestinationPrefixValue;
+    @Value("${keyword.destination}")
+    private String keywordDestinationValue;
+    @Value("${available.keyword.category}")
+    private String categoriesValue;
+
+    public static String pubSubDestinationPrefix;
+    public static String keywordDestination;
+    public static String categories;
+    public static Set<String> availableCategories;
+
+    @PostConstruct
+    private void init() {
+        pubSubDestinationPrefix = pubSubDestinationPrefixValue;
+        keywordDestination = keywordDestinationValue;
+        categories = categoriesValue;
+        availableCategories = new HashSet<>();
+        availableCategories.addAll(Arrays.asList(Constant.categories.split(",")));
+    }
+
     public static final Map<String, String> combinedCategoryMap = Map.ofEntries(
             entry("PROGRAMMING_LANGUAGE", "languages"),
             entry("OTHER_LANGUAGE", "languages"),
