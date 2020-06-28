@@ -1,6 +1,7 @@
 package com.alaitp.keyword.websocket.thread;
 
 import com.alaitp.keyword.websocket.message.ChartOptionSession;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -11,19 +12,19 @@ public class ScheduleSendThread extends Thread {
         this.chartOptionSession = chartOptionSession;
     }
 
+    @SneakyThrows
     @Override
     public void run() {
         super.run();
         startTimer();
     }
 
-    private void startTimer() {
+    private void startTimer() throws InterruptedException {
+        // sleep one second on start
+        Thread.sleep(1000);
+        chartOptionSession.sendOnInit();
         while (!chartOptionSession.sessionEnd()) {
-            try {
-                Thread.sleep(chartOptionSession.getSEND_INTERVAL());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            Thread.sleep(ChartOptionSession.SEND_INTERVAL);
             chartOptionSession.sendOnInterval();
         }
     }

@@ -42,7 +42,7 @@ public class MsgReceiver {
         msgService.sendJobKeyword(jobKeywordDto);
 
         // send chart options on receive (need check)
-        chartOptionSession.sendOnReceive(jobKeywordDto);
+        chartOptionSession.addJobKeyword(jobKeywordDto);
 
         // send chart options by time interval
         if (!requestId.equals(currentRequestId)) {

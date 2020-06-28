@@ -11,8 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * each request id have it's own chart option sending session
@@ -31,9 +29,9 @@ public class ChartOptionSession {
      * SEND_INTERVAL: time interval(milliseconds) of sending chart option message, avoiding front end rendering too often
      * MIN_INTERVALS: minimum total intervals to send chart options per request.
      */
-    private final int MIN_CHART_OPTION_RENDER_SECOND = 10;
-    private final int SEND_INTERVAL = 250;
-    private final int MIN_INTERVALS = MIN_CHART_OPTION_RENDER_SECOND * 1000 / SEND_INTERVAL;
+    private static final int MIN_CHART_OPTION_RENDER_SECOND = 10;
+    public static final int SEND_INTERVAL = 250;
+    private static final int MIN_INTERVALS = MIN_CHART_OPTION_RENDER_SECOND * 1000 / SEND_INTERVAL;
     /**
      * totalJobs: total amount of jobs for this request
      * intervalPerJob: the time interval(milliseconds) between each jobs, if the next job received time is out side this interval, send it directly
@@ -43,13 +41,11 @@ public class ChartOptionSession {
     private final int intervalPerJob;
     private int maxJobCountPerInterval;
     /**
-     * lastReceiveTime: the last time when received job keywords, for checking sendOnReceive, only one thread access it
-     * lastSendTime: the last time when sent chart options, two threads access it(sendOnReceive, sendOnInterval)
-     * jobOptionAmount: the amount of job processed, two threads access it(sendOnReceive, sendOnInterval)
+     * lastSendTime: the last time when sent chart options.
+     * jobOptionAmount: the amount of job processed.
      */
-    private long lastReceiveTime = 0L;
-    private AtomicLong lastSendTime = new AtomicLong(0);
-    private AtomicInteger jobOptionAmount = new AtomicInteger(0);
+    private long lastSendTime = 0L;
+    private int jobOptionAmount = 0;
 
     public ChartOptionSession(int totalJobs) {
         this.totalJobs = totalJobs;
@@ -58,68 +54,59 @@ public class ChartOptionSession {
     }
 
     /**
-     * when checked true (jobKeywordDto coming slow), send this chart option of this jobKeywordDto
-     * else add this jobKeywordDto to pending list waiting for scheduled sending
+     * add jobKeywordDto to pending list waiting for scheduled sending
      * @param jobKeywordDto
      */
-    public void sendOnReceive(JobKeywordDto jobKeywordDto) {
-        if (checkSendOnReceive()) {
-            log.info("=============> sending on receive");
-            keywordCache.addSendingKeyword(jobKeywordDto);
-            jobOptionAmount.incrementAndGet();
-            this.send();
-        } else {
-            keywordCache.addPendingKeyword(jobKeywordDto);
-        }
-        lastReceiveTime = System.currentTimeMillis();
+    public void addJobKeyword(JobKeywordDto jobKeywordDto) {
+        keywordCache.addPendingKeyword(jobKeywordDto);
     }
 
-    private boolean checkSendOnReceive() {
-        // when receive the first job, send it
-        if (lastReceiveTime == 0) {
-            return true;
-        } else {
-            // when receive outside the interval per job (job coming too slow), send it
-            return System.currentTimeMillis() - lastReceiveTime >= this.intervalPerJob;
+    public void sendOnInit() {
+        if (keywordCache.pendingEmpty()) {
+            return;
         }
+        for (int i = 0; i < keywordCache.pendingSize(); i++) {
+            keywordCache.processPendingJobKeyword();
+            jobOptionAmount++;
+        }
+        this.send();
+        log.info("========> chart options sent on init, size: " + keywordCache.pendingSize());
     }
 
     /**
      * check every sending interval, if there is pending job keywords, process them and send
      */
     public void sendOnInterval() {
-        if (lastSendTime != null && System.currentTimeMillis() - lastSendTime.get() < SEND_INTERVAL) {
-            return;
-        }
         if (keywordCache.pendingEmpty()) {
             return;
         }
         int pendingSize = keywordCache.pendingSize();
-        for (int i = 0; i < Math.min(maxJobCountPerInterval, pendingSize); i++) {
+        int processSize = Math.min(maxJobCountPerInterval, pendingSize);
+        for (int i = 0; i < processSize; i++) {
             keywordCache.processPendingJobKeyword();
-            jobOptionAmount.incrementAndGet();
+            jobOptionAmount++;
         }
         this.send();
-        log.info("========> chart options sent on interval, pending size: " + pendingSize);
+        log.info("========> chart options sent on interval, size: " + processSize);
     }
 
     private synchronized List<ChartOptionDto> getTop10ChartOptions() {
-        List<ChartOptionDto> chartOptionDtos = new ArrayList<>();
+        List<ChartOptionDto> chartOptionDtoList = new ArrayList<>();
         for (String category: Constant.availableCategories) {
             ChartOptionDto chartOptionDto = keywordCache.getTopKeywordByCategory(category, 10);
-            chartOptionDtos.add(chartOptionDto);
+            chartOptionDtoList.add(chartOptionDto);
         }
-        return chartOptionDtos;
+        return chartOptionDtoList;
     }
 
     public synchronized void send() {
         List<ChartOptionDto> chartOptions = getTop10ChartOptions();
         msgService.sendChartOptions(chartOptions);
-        log.info("chart option sent, total jobs: {}, job processed: {}", totalJobs, jobOptionAmount.get());
-        lastSendTime.set(System.currentTimeMillis());
+        log.info("chart option sent, total jobs: {}, job processed: {}", totalJobs, jobOptionAmount);
+        lastSendTime = System.currentTimeMillis();
     }
 
     public boolean sessionEnd() {
-        return jobOptionAmount.get() >= this.totalJobs - 1;
+        return jobOptionAmount >= this.totalJobs - 1;
     }
 }
