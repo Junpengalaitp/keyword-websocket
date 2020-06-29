@@ -40,15 +40,16 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
          * for point to point messaging.
          */
         registry.enableSimpleBroker(pubSubDestinationPrefix, p2pDestinationPrefix);
-        registry.setUserDestinationPrefix(p2pDestinationPrefix);
+//        registry.setUserDestinationPrefix(p2pDestinationPrefix);
         /*
          * For configuring dedicated broker use the below code.
          */
         // brokerRegistry.enableStompBrokerRelay("/topic", "/queue");
+
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint(wsEndpoint).setAllowedOrigins("*").withSockJS();
+        registry.addEndpoint(wsEndpoint).setHandshakeHandler(new CustomHandshakeHandler()).setAllowedOrigins("*").withSockJS();
     }
 }

@@ -3,9 +3,9 @@ package com.alaitp.keyword.websocket.message;
 import com.alaitp.keyword.websocket.ApplicationContextProvider;
 import com.alaitp.keyword.websocket.cache.KeywordCache;
 import com.alaitp.keyword.websocket.constant.Constant;
+import com.alaitp.keyword.websocket.controller.WsController;
 import com.alaitp.keyword.websocket.dto.ChartOptionDto;
 import com.alaitp.keyword.websocket.dto.JobKeywordDto;
-import com.alaitp.keyword.websocket.service.MsgService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,7 +18,7 @@ import java.util.List;
 @Slf4j
 @Data
 public class ChartOptionSession {
-    private MsgService msgService = ApplicationContextProvider.getBean(MsgService.class);
+    private WsController wsController = ApplicationContextProvider.getBean(WsController.class);
     /**
      * cache job keywords for generating chart options for top 10.
      */
@@ -101,7 +101,7 @@ public class ChartOptionSession {
 
     public synchronized void send() {
         List<ChartOptionDto> chartOptions = getTop10ChartOptions();
-        msgService.sendChartOptions(chartOptions);
+        wsController.sendChartOptions(chartOptions);
         log.info("chart option sent, total jobs: {}, job processed: {}", totalJobs, jobOptionAmount);
         lastSendTime = System.currentTimeMillis();
     }

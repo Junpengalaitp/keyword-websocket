@@ -1,7 +1,7 @@
 package com.alaitp.keyword.websocket.message;
 
+import com.alaitp.keyword.websocket.controller.WsController;
 import com.alaitp.keyword.websocket.dto.JobKeywordDto;
-import com.alaitp.keyword.websocket.service.MsgService;
 import com.alaitp.keyword.websocket.thread.ScheduleSendThread;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -17,7 +17,7 @@ import java.util.Map;
 @Component
 public class MsgReceiver {
     @Autowired
-    private MsgService msgService;
+    private WsController wsController;
     private String currentRequestId = null;
     private final Map<String, ChartOptionSession> requestSessionMap = new HashMap<>();
 
@@ -39,9 +39,9 @@ public class MsgReceiver {
         JobKeywordDto jobKeywordDto = JSON.parseObject(msg, JobKeywordDto.class);
 
         // send job keywords on receive (no check needed)
-        msgService.sendJobKeyword(jobKeywordDto);
+        wsController.sendJobKeyword(jobKeywordDto);
 
-        // send chart options on receive (need check)
+        // add jobKeywordDto to pending list for chart options
         chartOptionSession.addJobKeyword(jobKeywordDto);
 
         // send chart options by time interval
