@@ -7,6 +7,7 @@ import com.alaitp.keyword.websocket.controller.WsController;
 import com.alaitp.keyword.websocket.dto.ChartOptionDto;
 import com.alaitp.keyword.websocket.dto.JobKeywordDto;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import java.util.List;
  */
 @Slf4j
 @Data
+@NoArgsConstructor
 public class ChartOptionSession {
     private WsController wsController = ApplicationContextProvider.getBean(WsController.class);
     /**
@@ -37,8 +39,8 @@ public class ChartOptionSession {
      * intervalPerJob: the time interval(milliseconds) between each jobs, if the next job received time is out side this interval, send it directly
      * maxJobCountPerInterval: max amount of jobs to process for chart options per sending interval
      */
-    private final int totalJobs;
-    private final int intervalPerJob;
+    private int totalJobs = 0;
+    private int intervalPerJob = 0;
     private int maxJobCountPerInterval;
     /**
      * lastSendTime: the last time when sent chart options.
@@ -108,5 +110,13 @@ public class ChartOptionSession {
 
     public boolean sessionEnd() {
         return jobOptionAmount >= this.totalJobs - 1;
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        if (!keywordCache.pendingEmpty()) {
+            log.error("chart option has pending keyword cache left");
+        }
+        super.finalize();
     }
 }

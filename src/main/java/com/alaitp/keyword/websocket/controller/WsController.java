@@ -1,8 +1,10 @@
 package com.alaitp.keyword.websocket.controller;
 
+import com.alaitp.keyword.websocket.cache.CacheManager;
 import com.alaitp.keyword.websocket.constant.Constant;
 import com.alaitp.keyword.websocket.dto.ChartOptionDto;
 import com.alaitp.keyword.websocket.dto.JobKeywordDto;
+import com.alaitp.keyword.websocket.message.ChartOptionSession;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
@@ -22,10 +24,11 @@ public class WsController {
     private SimpMessagingTemplate messagingTemplate;
 
     @MessageMapping("/keyword")
-    @SendToUser("/topic/hello")
+    @SendToUser("/topic/keyword")
     public String onConnect(String msg, Principal principal) {
         log.info("Received onConnect message {}", msg);
-        log.info("principal: " + principal.getName() + principal.toString());
+        CacheManager.chartOptionSessionCache.putIfAbsent(principal.getName(), new ChartOptionSession());
+        log.info("principal: " + principal.getName() + " added to chartOptionSessionCache");
         return "server received on onConnect message";
     }
 
