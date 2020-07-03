@@ -19,10 +19,13 @@ public class Constant {
     private String keywordDestinationValue;
     @Value("${available.keyword.category}")
     private String categoriesValue;
+    public static String p2pDestinationPrefix;
 
     public static String pubSubDestinationPrefix;
     public static String keywordDestination;
     public static String categories;
+    @Value("${point-point.destination.prefix}")
+    private String p2pDestinationPrefixValue;
     public static Set<String> availableCategories;
 
     @PostConstruct
@@ -30,6 +33,7 @@ public class Constant {
         pubSubDestinationPrefix = pubSubDestinationPrefixValue;
         keywordDestination = keywordDestinationValue;
         categories = categoriesValue;
+        p2pDestinationPrefix = p2pDestinationPrefixValue;
         availableCategories = new HashSet<>();
         availableCategories.addAll(Arrays.asList(Constant.categories.split(",")));
     }

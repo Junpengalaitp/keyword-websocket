@@ -7,4 +7,6 @@ import java.util.concurrent.ConcurrentMap;
 
 public class CacheManager {
     public static final ConcurrentMap<String, ChartOptionSession> chartOptionSessionCache = new ConcurrentHashMap<>();
+
+    public static final ConcurrentMap<String, String> requestIdToUserMap = new ConcurrentHashMap<>();
 }

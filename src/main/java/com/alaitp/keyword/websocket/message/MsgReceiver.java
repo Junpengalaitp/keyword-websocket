@@ -39,7 +39,7 @@ public class MsgReceiver {
         JobKeywordDto jobKeywordDto = JSON.parseObject(msg, JobKeywordDto.class);
 
         // send job keywords on receive (no check needed)
-        wsController.sendJobKeyword(jobKeywordDto);
+        wsController.sendJobKeyword(jobKeywordDto, requestId);
 
         // add jobKeywordDto to pending list for chart options
         chartOptionSession.addJobKeyword(jobKeywordDto);
@@ -50,12 +50,11 @@ public class MsgReceiver {
             ScheduleSendThread scheduleSendThread = new ScheduleSendThread(chartOptionSession);
             scheduleSendThread.start();
         }
-
         this.currentRequestId = requestId;
     }
 
     private ChartOptionSession getChartOptionSession(String requestId, Integer totalJobs) {
-        requestSessionMap.putIfAbsent(requestId, new ChartOptionSession(totalJobs));
+        requestSessionMap.putIfAbsent(requestId, new ChartOptionSession(totalJobs, requestId));
         return requestSessionMap.get(requestId);
     }
 }

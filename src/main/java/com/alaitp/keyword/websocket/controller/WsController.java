@@ -25,20 +25,22 @@ public class WsController {
 
     @MessageMapping("/keyword")
     @SendToUser("/topic/keyword")
-    public String onConnect(String msg, Principal principal) {
-        log.info("Received onConnect message {}", msg);
+    public String onConnect(String requestId, Principal principal) {
+        log.info("Received request id: {}, principal: {}", requestId, principal.getName());
         CacheManager.chartOptionSessionCache.putIfAbsent(principal.getName(), new ChartOptionSession());
-        log.info("principal: " + principal.getName() + " added to chartOptionSessionCache");
+        CacheManager.requestIdToUserMap.put(requestId, principal.getName());
         return "server received on onConnect message";
     }
 
-    public void sendJobKeyword(JobKeywordDto jobKeywordDto) {
+    public void sendJobKeyword(JobKeywordDto jobKeywordDto, String requestId) {
         JSONObject jobKeywordJson = JSON.parseObject(JSON.toJSONString(jobKeywordDto));
         jobKeywordJson.put("msgType", "jobKeyword");
-        messagingTemplate.convertAndSend(Constant.pubSubDestinationPrefix + Constant.keywordDestination, jobKeywordJson);
+        String user = CacheManager.requestIdToUserMap.get(requestId);
+        messagingTemplate.convertAndSendToUser(user, Constant.p2pDestinationPrefix + Constant.keywordDestination, jobKeywordJson);
     }
 
-    public void sendChartOptions(List<ChartOptionDto> chartOptionDtoList) {
-        messagingTemplate.convertAndSend(Constant.pubSubDestinationPrefix + Constant.keywordDestination, chartOptionDtoList);
+    public void sendChartOptions(List<ChartOptionDto> chartOptionDtoList, String requestId) {
+        String user = CacheManager.requestIdToUserMap.get(requestId);
+        messagingTemplate.convertAndSendToUser(user, Constant.p2pDestinationPrefix + Constant.keywordDestination, chartOptionDtoList);
     }
 }

@@ -21,6 +21,7 @@ import java.util.List;
 @NoArgsConstructor
 public class ChartOptionSession {
     private WsController wsController = ApplicationContextProvider.getBean(WsController.class);
+    private String requestId;
     /**
      * cache job keywords for generating chart options for top 10.
      */
@@ -49,7 +50,8 @@ public class ChartOptionSession {
     private long lastSendTime = 0L;
     private int jobOptionAmount = 0;
 
-    public ChartOptionSession(int totalJobs) {
+    public ChartOptionSession(int totalJobs, String requestId) {
+        this.requestId = requestId;
         this.totalJobs = totalJobs;
         this.maxJobCountPerInterval = totalJobs / MIN_INTERVALS;
         this.intervalPerJob = SEND_INTERVAL * MIN_INTERVALS / totalJobs;
@@ -57,6 +59,7 @@ public class ChartOptionSession {
 
     /**
      * add jobKeywordDto to pending list waiting for scheduled sending
+     *
      * @param jobKeywordDto
      */
     public void addJobKeyword(JobKeywordDto jobKeywordDto) {
@@ -89,7 +92,7 @@ public class ChartOptionSession {
             jobOptionAmount++;
         }
         this.send();
-        log.info("========> chart options sent on interval, size: " + processSize);
+//        log.info("========> chart options sent on interval, size: " + processSize);
     }
 
     private synchronized List<ChartOptionDto> getTop10ChartOptions() {
@@ -103,8 +106,8 @@ public class ChartOptionSession {
 
     public synchronized void send() {
         List<ChartOptionDto> chartOptions = getTop10ChartOptions();
-        wsController.sendChartOptions(chartOptions);
-        log.info("chart option sent, total jobs: {}, job processed: {}", totalJobs, jobOptionAmount);
+        wsController.sendChartOptions(chartOptions, requestId);
+//        log.info("chart option sent, total jobs: {}, job processed: {}", totalJobs, jobOptionAmount);
         lastSendTime = System.currentTimeMillis();
     }
 
