@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.alaitp.keyword.websocket.message.MsgReceiver.requestSessionMap;
+
 /**
  * each request id have it's own chart option sending session
  */
@@ -111,8 +113,13 @@ public class ChartOptionSession {
         lastSendTime = System.currentTimeMillis();
     }
 
-    public boolean sessionEnd() {
+    public boolean isSessionEnd() {
         return jobOptionAmount >= this.totalJobs - 1;
+    }
+
+    public void endSession() {
+        wsController.sendSessionEndMsg(requestId);
+        requestSessionMap.remove(requestId);
     }
 
     @Override

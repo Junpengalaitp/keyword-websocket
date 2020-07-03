@@ -4,7 +4,6 @@ import com.alaitp.keyword.websocket.cache.CacheManager;
 import com.alaitp.keyword.websocket.constant.Constant;
 import com.alaitp.keyword.websocket.dto.ChartOptionDto;
 import com.alaitp.keyword.websocket.dto.JobKeywordDto;
-import com.alaitp.keyword.websocket.message.ChartOptionSession;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
@@ -27,9 +26,10 @@ public class WsController {
     @SendToUser("/topic/keyword")
     public String onConnect(String requestId, Principal principal) {
         log.info("Received request id: {}, principal: {}", requestId, principal.getName());
-        CacheManager.chartOptionSessionCache.putIfAbsent(principal.getName(), new ChartOptionSession());
         CacheManager.requestIdToUserMap.put(requestId, principal.getName());
-        return "server received on onConnect message";
+        JSONObject res = new JSONObject();
+        res.put("msgType", "res");
+        return res.toJSONString();
     }
 
     public void sendJobKeyword(JobKeywordDto jobKeywordDto, String requestId) {
@@ -42,5 +42,10 @@ public class WsController {
     public void sendChartOptions(List<ChartOptionDto> chartOptionDtoList, String requestId) {
         String user = CacheManager.requestIdToUserMap.get(requestId);
         messagingTemplate.convertAndSendToUser(user, Constant.p2pDestinationPrefix + Constant.keywordDestination, chartOptionDtoList);
+    }
+
+    public void sendSessionEndMsg(String requestId) {
+        String user = CacheManager.requestIdToUserMap.get(requestId);
+        messagingTemplate.convertAndSendToUser(user, Constant.p2pDestinationPrefix + Constant.keywordDestination, "session end");
     }
 }

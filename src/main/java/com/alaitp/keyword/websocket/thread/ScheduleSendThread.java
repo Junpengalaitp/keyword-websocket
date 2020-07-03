@@ -23,9 +23,10 @@ public class ScheduleSendThread extends Thread {
         // sleep one second on start
         Thread.sleep(1000);
         chartOptionSession.sendOnInit();
-        while (!chartOptionSession.sessionEnd()) {
+        while (!chartOptionSession.isSessionEnd()) {
             Thread.sleep(ChartOptionSession.SEND_INTERVAL);
             chartOptionSession.sendOnInterval();
         }
+        chartOptionSession.endSession();
     }
 }

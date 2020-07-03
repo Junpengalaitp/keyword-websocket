@@ -19,7 +19,7 @@ public class MsgReceiver {
     @Autowired
     private WsController wsController;
     private String currentRequestId = null;
-    private final Map<String, ChartOptionSession> requestSessionMap = new HashMap<>();
+    public static final Map<String, ChartOptionSession> requestSessionMap = new HashMap<>();
 
 
     @RabbitListener(queues = "${keyword.queue}")
