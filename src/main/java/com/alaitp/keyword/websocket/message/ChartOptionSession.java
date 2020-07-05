@@ -2,7 +2,7 @@ package com.alaitp.keyword.websocket.message;
 
 import com.alaitp.keyword.websocket.ApplicationContextProvider;
 import com.alaitp.keyword.websocket.cache.KeywordCache;
-import com.alaitp.keyword.websocket.constant.Constant;
+import com.alaitp.keyword.websocket.constant.ConfigValue;
 import com.alaitp.keyword.websocket.controller.WsController;
 import com.alaitp.keyword.websocket.dto.ChartOptionDto;
 import com.alaitp.keyword.websocket.dto.JobKeywordDto;
@@ -99,7 +99,7 @@ public class ChartOptionSession {
 
     private synchronized List<ChartOptionDto> getTop10ChartOptions() {
         List<ChartOptionDto> chartOptionDtoList = new ArrayList<>();
-        for (String category: Constant.availableCategories) {
+        for (String category : ConfigValue.availableCategories) {
             ChartOptionDto chartOptionDto = keywordCache.getTopKeywordByCategory(category, 10);
             chartOptionDtoList.add(chartOptionDto);
         }
