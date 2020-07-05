@@ -21,7 +21,6 @@ public class MsgReceiver {
     private String currentRequestId = null;
     public static final Map<String, ChartOptionSession> requestSessionMap = new HashMap<>();
 
-
     @RabbitListener(queues = "${keyword.queue}")
     public void onMessage(String msg) {
         JSONObject keywordJson = JSON.parseObject(msg);
@@ -46,7 +45,7 @@ public class MsgReceiver {
 
         // send chart options by time interval
         if (!requestId.equals(currentRequestId)) {
-            log.info("started timed sending thread for request id: " + requestId);
+//            log.info("started timed sending thread for request id: " + requestId);
             ScheduleSendThread scheduleSendThread = new ScheduleSendThread(chartOptionSession);
             scheduleSendThread.start();
         }

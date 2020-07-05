@@ -13,6 +13,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.alaitp.keyword.websocket.constant.Constant.*;
@@ -20,29 +21,55 @@ import static com.alaitp.keyword.websocket.constant.Constant.*;
 @Slf4j
 @Controller
 public class WsController {
+    public static final String chartDestination = ConfigValue.p2pDestinationPrefix + ConfigValue.chartDestination;
+    private static final String keywordDestination = ConfigValue.p2pDestinationPrefix + ConfigValue.keywordDestination;
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
+    /**
+     * record the session(principal user) on ws connect, map the request id to users
+     */
     @MessageMapping("${keyword.destination}")
     public void onConnect(String requestId, Principal principal) {
         log.info("Received request id: {}, principal: {}", requestId, principal.getName());
         CacheManager.requestIdToUserMap.put(requestId, principal.getName());
     }
 
+    /**
+     * send the job keyword to user for this request id. Due to async issue (job keyword arrive before the request id
+     * recorded, use a cache to cache those pre-arrived jobKeywordDto)
+     */
     public void sendJobKeyword(JobKeywordDto jobKeywordDto, String requestId) {
-        JSONObject jobKeywordJson = JSON.parseObject(JSON.toJSONString(jobKeywordDto));
+        JSONObject jobKeywordJson;
+        jobKeywordJson = JSON.parseObject(JSON.toJSONString(jobKeywordDto));
         jobKeywordJson.put(MSG_TYPE, TYPE_JOB_KEYWORD);
         String user = CacheManager.requestIdToUserMap.get(requestId);
-        messagingTemplate.convertAndSendToUser(user, ConfigValue.p2pDestinationPrefix + ConfigValue.keywordDestination, jobKeywordJson);
+        if (user == null) {
+            CacheManager.requestIdJobCacheMap.putIfAbsent(requestId, new ArrayList<>());
+            CacheManager.requestIdJobCacheMap.get(requestId).add(jobKeywordDto);
+        } else {
+            messagingTemplate.convertAndSendToUser(user, keywordDestination, jobKeywordJson);
+            // send cached keywords
+            List<JobKeywordDto> cacheJobKeyword = CacheManager.requestIdJobCacheMap.get(requestId);
+            if (cacheJobKeyword != null && !cacheJobKeyword.isEmpty()) {
+                for (JobKeywordDto jobKeywordCache : cacheJobKeyword) {
+                    jobKeywordJson = JSON.parseObject(JSON.toJSONString(jobKeywordCache));
+                    jobKeywordJson.put(MSG_TYPE, TYPE_JOB_KEYWORD);
+                    messagingTemplate.convertAndSendToUser(user, keywordDestination, jobKeywordJson);
+                }
+                log.info(cacheJobKeyword.size() + " cached job keyword sent");
+                cacheJobKeyword.clear();
+            }
+        }
     }
 
     public void sendChartOptions(List<ChartOptionDto> chartOptionDtoList, String requestId) {
         String user = CacheManager.requestIdToUserMap.get(requestId);
-        messagingTemplate.convertAndSendToUser(user, ConfigValue.p2pDestinationPrefix + ConfigValue.chartDestination, chartOptionDtoList);
+        messagingTemplate.convertAndSendToUser(user, chartDestination, chartOptionDtoList);
     }
 
     public void sendSessionEndMsg(String requestId) {
         String user = CacheManager.requestIdToUserMap.get(requestId);
-        messagingTemplate.convertAndSendToUser(user, ConfigValue.p2pDestinationPrefix + ConfigValue.chartDestination, TYPE_SESSION_END);
+        messagingTemplate.convertAndSendToUser(user, chartDestination, TYPE_SESSION_END);
     }
 }
