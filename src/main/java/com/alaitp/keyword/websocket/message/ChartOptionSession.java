@@ -60,14 +60,14 @@ public class ChartOptionSession {
     }
 
     /**
-     * add jobKeywordDto to pending list waiting for scheduled sending
+     * add jobKeywordDto to pending list waiting for scheduled sending.
      */
     public void addJobKeyword(JobKeywordDto jobKeywordDto) {
         keywordCache.addPendingKeyword(jobKeywordDto);
     }
 
     /**
-     * check every sending interval, if there is pending job keywords, process them and send
+     * check every sending interval, if there are pending job keywords, process them and send.
      */
     public void sendOnInterval() {
         if (keywordCache.pendingEmpty()) {

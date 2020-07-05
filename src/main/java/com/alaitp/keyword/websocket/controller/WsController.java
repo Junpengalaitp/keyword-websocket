@@ -37,7 +37,7 @@ public class WsController {
 
     /**
      * send the job keyword to user for this request id. Due to async issue (job keyword arrive before the request id
-     * recorded, use a cache to cache those pre-arrived jobKeywordDto)
+     * recorded, use a cache to cache those pre-arrived jobKeywordDto and send them later)
      */
     public void sendJobKeyword(JobKeywordDto jobKeywordDto, String requestId) {
         JSONObject jobKeywordJson = JSON.parseObject(JSON.toJSONString(jobKeywordDto));

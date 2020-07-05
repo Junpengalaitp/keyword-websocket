@@ -10,9 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public interface CacheManager {
-    ConcurrentMap<String, String> requestIdToUserMap = new ConcurrentHashMap<>();
-
-    ConcurrentMap<String, List<JobKeywordDto>> requestIdJobCacheMap = new ConcurrentHashMap<>();
-
     Map<String, ChartOptionSession> requestSessionMap = new HashMap<>();
+    ConcurrentMap<String, String> requestIdToUserMap = new ConcurrentHashMap<>();
+    ConcurrentMap<String, List<JobKeywordDto>> requestIdJobCacheMap = new ConcurrentHashMap<>();
 }

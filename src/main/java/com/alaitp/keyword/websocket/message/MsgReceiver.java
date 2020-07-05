@@ -17,7 +17,7 @@ import static com.alaitp.keyword.websocket.constant.Constant.TOTAL_JOB_COUNT;
 /**
  * on receive a job keyword message, do these two things:
  * 1. send the job keyword to front end immediately.
- * 2. collect job keywords for chart options, use a thread to send chart options to front end.
+ * 2. collect job keywords for chart options, use a scheduled thread to send top K chart options to front end.
  */
 @Slf4j
 @Component

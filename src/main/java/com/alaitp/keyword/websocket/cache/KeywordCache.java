@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -15,17 +14,27 @@ import java.util.concurrent.ConcurrentMap;
  */
 @Slf4j
 public class KeywordCache {
-    // the map to get chart options
+    /**
+     * when receiving JobKeywordDto out of sending interval, add to pending list and use them in the next sending interval
+     */
+    private final Queue<JobKeywordDto> pendingList = new LinkedList<>();
+    /**
+     * the map used by heap to get top K chart options
+     */
     private final ConcurrentMap<String, ConcurrentMap<String, Integer>> keywordChartOptionMap = new ConcurrentHashMap<>();
-
-    // when receiving JobKeywordDto out of sending interval, add to pending list and use them in the next sending interval
-    private final ConcurrentLinkedQueue<JobKeywordDto> pendingList = new ConcurrentLinkedQueue<>();
-
+    /**
+     * use binary heap(min heap) to find the top K frequent keywords for the category.
+     */
+    private final PriorityQueue<Map.Entry<String, Integer>> minHeap = new PriorityQueue<>(
+            Comparator.comparingInt(Map.Entry::getValue));
 
     public void addPendingKeyword(JobKeywordDto jobKeywordDto) {
         pendingList.offer(jobKeywordDto);
     }
 
+    /**
+     * process job keywords in the queue, place them in the map for the heap
+     */
     public void processPendingJobKeyword() {
         JobKeywordDto jobKeywordDto = pendingList.remove();
         addJobKeywordByCategory(jobKeywordDto);
@@ -48,7 +57,8 @@ public class KeywordCache {
     }
 
     /**
-     * use binary heap to find the top K frequent keywords for the category
+     * when the heap has more than top K items, call poll method to remove the smallest one, so at the last, top K items
+     * will remain in the heap, and the time complexity will be log(K)
      */
     public ChartOptionDto getTopKeywordByCategory(String category, int topK) {
         String combinedCategory = Constant.combinedCategoryMap.getOrDefault(category, category);
@@ -56,18 +66,17 @@ public class KeywordCache {
         if (keywordCount == null || keywordCount.isEmpty()) {
             return null;
         }
-        PriorityQueue<Map.Entry<String, Integer>> heap = new PriorityQueue<>(
-                Comparator.comparingInt(Map.Entry::getValue));
-        for (Map.Entry<String, Integer> entry: keywordCount.entrySet()) {
-            heap.offer(entry);
-            if (heap.size() > topK) {
-                heap.poll();
+        for (Map.Entry<String, Integer> entry : keywordCount.entrySet()) {
+            minHeap.offer(entry);
+            if (minHeap.size() > topK) {
+                minHeap.poll();
             }
         }
+        // only top K remains in the heap
         List<String> keywords = new ArrayList<>();
         List<Integer> counts = new ArrayList<>();
-        while (!heap.isEmpty()) {
-            Map.Entry<String, Integer> entry = heap.poll();
+        while (!minHeap.isEmpty()) {
+            Map.Entry<String, Integer> entry = minHeap.poll();
             keywords.add(entry.getKey());
             counts.add(entry.getValue());
         }
