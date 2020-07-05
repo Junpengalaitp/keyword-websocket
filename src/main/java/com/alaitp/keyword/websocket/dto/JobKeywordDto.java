@@ -12,6 +12,9 @@ public class JobKeywordDto {
     private List<KeywordDto> keywordList;
     private Set<String> categoryList;
 
+    /**
+     * inner class for a single KeywordDto
+     */
     @Data
     public static class KeywordDto {
         private String keyword;

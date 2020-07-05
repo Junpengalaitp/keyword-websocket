@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.alaitp.keyword.websocket.message.MsgReceiver.requestSessionMap;
+import static com.alaitp.keyword.websocket.cache.CacheManager.*;
 
 /**
  * each request id have it's own chart option sending session
@@ -61,23 +61,9 @@ public class ChartOptionSession {
 
     /**
      * add jobKeywordDto to pending list waiting for scheduled sending
-     *
-     * @param jobKeywordDto
      */
     public void addJobKeyword(JobKeywordDto jobKeywordDto) {
         keywordCache.addPendingKeyword(jobKeywordDto);
-    }
-
-    public void sendOnInit() {
-        if (keywordCache.pendingEmpty()) {
-            return;
-        }
-        for (int i = 0; i < keywordCache.pendingSize(); i++) {
-            keywordCache.processPendingJobKeyword();
-            jobOptionAmount++;
-        }
-        this.send();
-        log.info("========> chart options sent on init, size: " + keywordCache.pendingSize());
     }
 
     /**
@@ -94,10 +80,10 @@ public class ChartOptionSession {
             jobOptionAmount++;
         }
         this.send();
-//        log.info("========> chart options sent on interval, size: " + processSize);
+        log.debug("========> chart options sent on interval, size: " + processSize);
     }
 
-    private synchronized List<ChartOptionDto> getTop10ChartOptions() {
+    private List<ChartOptionDto> getTop10ChartOptions() {
         List<ChartOptionDto> chartOptionDtoList = new ArrayList<>();
         for (String category : ConfigValue.availableCategories) {
             ChartOptionDto chartOptionDto = keywordCache.getTopKeywordByCategory(category, 10);
@@ -106,10 +92,10 @@ public class ChartOptionSession {
         return chartOptionDtoList;
     }
 
-    public synchronized void send() {
+    public void send() {
         List<ChartOptionDto> chartOptions = getTop10ChartOptions();
         wsController.sendChartOptions(chartOptions, requestId);
-//        log.info("chart option sent, total jobs: {}, job processed: {}", totalJobs, jobOptionAmount);
+        log.debug("chart option sent, total jobs: {}, job processed: {}", totalJobs, jobOptionAmount);
         lastSendTime = System.currentTimeMillis();
     }
 
@@ -120,12 +106,18 @@ public class ChartOptionSession {
     public void endSession() {
         wsController.sendSessionEndMsg(requestId);
         requestSessionMap.remove(requestId);
+        requestIdToUserMap.remove(requestId);
+        requestIdJobCacheMap.remove(requestId);
+        log.info("all job processed, current request end, request id: " + requestId);
     }
 
+    /**
+     * check every session did finish the job before GC.
+     */
     @Override
     protected void finalize() throws Throwable {
         if (!keywordCache.pendingEmpty()) {
-            log.error("chart option has pending keyword cache left");
+            log.error("chart option session for request id: {} has pending keyword cache left", requestId);
         }
         super.finalize();
     }

@@ -26,10 +26,6 @@ public class KeywordCache {
         pendingList.offer(jobKeywordDto);
     }
 
-    public void addSendingKeyword(JobKeywordDto jobKeywordDto) {
-        addJobKeywordByCategory(jobKeywordDto);
-    }
-
     public void processPendingJobKeyword() {
         JobKeywordDto jobKeywordDto = pendingList.remove();
         addJobKeywordByCategory(jobKeywordDto);

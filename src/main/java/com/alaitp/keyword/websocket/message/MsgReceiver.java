@@ -1,8 +1,9 @@
 package com.alaitp.keyword.websocket.message;
 
+import com.alaitp.keyword.websocket.cache.CacheManager;
 import com.alaitp.keyword.websocket.controller.WsController;
 import com.alaitp.keyword.websocket.dto.JobKeywordDto;
-import com.alaitp.keyword.websocket.thread.ScheduleSendThread;
+import com.alaitp.keyword.websocket.thread.ScheduleThreadPool;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
@@ -10,50 +11,48 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
+import static com.alaitp.keyword.websocket.constant.Constant.REQUEST_ID;
+import static com.alaitp.keyword.websocket.constant.Constant.TOTAL_JOB_COUNT;
 
+/**
+ * on receive a job keyword message, do these two things:
+ * 1. send the job keyword to front end immediately.
+ * 2. collect job keywords for chart options, use a thread to send chart options to front end.
+ */
 @Slf4j
 @Component
 public class MsgReceiver {
     @Autowired
     private WsController wsController;
     private String currentRequestId = null;
-    public static final Map<String, ChartOptionSession> requestSessionMap = new HashMap<>();
 
     @RabbitListener(queues = "${keyword.queue}")
     public void onMessage(String msg) {
-        JSONObject keywordJson = JSON.parseObject(msg);
-        String requestId =  keywordJson.getString("request_id");
-        int totalJobs = keywordJson.getInteger("total_job_count");
-
-        ChartOptionSession chartOptionSession = getChartOptionSession(requestId, totalJobs);
-
-        if (Boolean.TRUE.equals(keywordJson.getBoolean("request_end"))) {
-            log.info("all job processed, current request end, request id: " + requestId);
-            requestSessionMap.remove(requestId);
-            return;
-        }
-
         JobKeywordDto jobKeywordDto = JSON.parseObject(msg, JobKeywordDto.class);
+        JSONObject keywordJson = JSON.parseObject(msg);
+        String requestId = keywordJson.getString(REQUEST_ID);
 
         // send job keywords on receive (no check needed)
         wsController.sendJobKeyword(jobKeywordDto, requestId);
 
+        ChartOptionSession chartOptionSession = getChartOptionSession(keywordJson);
         // add jobKeywordDto to pending list for chart options
         chartOptionSession.addJobKeyword(jobKeywordDto);
-
         // send chart options by time interval
-        if (!requestId.equals(currentRequestId)) {
-//            log.info("started timed sending thread for request id: " + requestId);
-            ScheduleSendThread scheduleSendThread = new ScheduleSendThread(chartOptionSession);
-            scheduleSendThread.start();
+        if (isRequestStart(requestId)) {
+            ScheduleThreadPool.submit(chartOptionSession);
         }
-        this.currentRequestId = requestId;
+        currentRequestId = requestId;
     }
 
-    private ChartOptionSession getChartOptionSession(String requestId, Integer totalJobs) {
-        requestSessionMap.putIfAbsent(requestId, new ChartOptionSession(totalJobs, requestId));
-        return requestSessionMap.get(requestId);
+    private ChartOptionSession getChartOptionSession(JSONObject keywordJson) {
+        String requestId = keywordJson.getString(REQUEST_ID);
+        int totalJobs = keywordJson.getInteger(TOTAL_JOB_COUNT);
+        CacheManager.requestSessionMap.putIfAbsent(requestId, new ChartOptionSession(totalJobs, requestId));
+        return CacheManager.requestSessionMap.get(requestId);
+    }
+
+    private boolean isRequestStart(String requestId) {
+        return !requestId.equals(currentRequestId);
     }
 }

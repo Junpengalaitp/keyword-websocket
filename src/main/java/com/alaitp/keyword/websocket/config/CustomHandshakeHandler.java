@@ -8,6 +8,9 @@ import java.security.Principal;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * generate a user (Principal) when a ws session connected
+ */
 class CustomHandshakeHandler extends DefaultHandshakeHandler {
     // Custom class for storing principal
     @Override

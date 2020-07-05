@@ -40,8 +40,7 @@ public class WsController {
      * recorded, use a cache to cache those pre-arrived jobKeywordDto)
      */
     public void sendJobKeyword(JobKeywordDto jobKeywordDto, String requestId) {
-        JSONObject jobKeywordJson;
-        jobKeywordJson = JSON.parseObject(JSON.toJSONString(jobKeywordDto));
+        JSONObject jobKeywordJson = JSON.parseObject(JSON.toJSONString(jobKeywordDto));
         jobKeywordJson.put(MSG_TYPE, TYPE_JOB_KEYWORD);
         String user = CacheManager.requestIdToUserMap.get(requestId);
         if (user == null) {
@@ -49,17 +48,24 @@ public class WsController {
             CacheManager.requestIdJobCacheMap.get(requestId).add(jobKeywordDto);
         } else {
             messagingTemplate.convertAndSendToUser(user, keywordDestination, jobKeywordJson);
-            // send cached keywords
-            List<JobKeywordDto> cacheJobKeyword = CacheManager.requestIdJobCacheMap.get(requestId);
-            if (cacheJobKeyword != null && !cacheJobKeyword.isEmpty()) {
-                for (JobKeywordDto jobKeywordCache : cacheJobKeyword) {
-                    jobKeywordJson = JSON.parseObject(JSON.toJSONString(jobKeywordCache));
-                    jobKeywordJson.put(MSG_TYPE, TYPE_JOB_KEYWORD);
-                    messagingTemplate.convertAndSendToUser(user, keywordDestination, jobKeywordJson);
-                }
-                log.info(cacheJobKeyword.size() + " cached job keyword sent");
-                cacheJobKeyword.clear();
+            sendCachedJobKeywords(requestId);
+        }
+    }
+
+    /**
+     * send cached keywords
+     */
+    private void sendCachedJobKeywords(String requestId) {
+        List<JobKeywordDto> cacheJobKeyword = CacheManager.requestIdJobCacheMap.get(requestId);
+        if (cacheJobKeyword != null && !cacheJobKeyword.isEmpty()) {
+            String user = CacheManager.requestIdToUserMap.get(requestId);
+            for (JobKeywordDto jobKeywordCache : cacheJobKeyword) {
+                JSONObject jobKeywordJson = JSON.parseObject(JSON.toJSONString(jobKeywordCache));
+                jobKeywordJson.put(MSG_TYPE, TYPE_JOB_KEYWORD);
+                messagingTemplate.convertAndSendToUser(user, keywordDestination, jobKeywordJson);
             }
+            log.info(cacheJobKeyword.size() + " cached job keyword sent");
+            cacheJobKeyword.clear();
         }
     }
 

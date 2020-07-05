@@ -27,4 +27,6 @@ public interface Constant {
     String MSG_TYPE = "msgType";
     String TYPE_JOB_KEYWORD = "jobKeyword";
     String TYPE_SESSION_END = "session end";
+    String REQUEST_ID = "request_id";
+    String TOTAL_JOB_COUNT = "total_job_count";
 }
