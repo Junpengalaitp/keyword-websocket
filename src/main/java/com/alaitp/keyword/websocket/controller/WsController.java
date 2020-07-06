@@ -4,6 +4,7 @@ import com.alaitp.keyword.websocket.cache.CacheManager;
 import com.alaitp.keyword.websocket.constant.ConfigValue;
 import com.alaitp.keyword.websocket.dto.ChartOptionDto;
 import com.alaitp.keyword.websocket.dto.JobKeywordDto;
+import com.alaitp.keyword.websocket.thread.ScheduleThreadPool;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +33,13 @@ public class WsController {
     @MessageMapping("${keyword.destination}")
     public void onConnect(String requestId, Principal principal) {
         log.info("Received request id: {}, principal: {}", requestId, principal.getName());
+        if (CacheManager.userToRequestIdMap.containsKey(principal.getName())) {
+            log.info("user send request before previous request complete, cancel scheduled thread");
+            ScheduleThreadPool.endTask(CacheManager.userToRequestIdMap.get(principal.getName()));
+            CacheManager.userToRequestIdMap.remove(principal.getName());
+        }
         CacheManager.requestIdToUserMap.put(requestId, principal.getName());
+        CacheManager.userToRequestIdMap.put(principal.getName(), requestId);
     }
 
     /**
