@@ -13,11 +13,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public interface CacheManager {
-    Map<String, ChartOptionSession> requestSessionMap = new HashMap<>();
     /**
      * use Guava's BiMap for two ways finding
      */
     BiMap<String, String> requestIdToUserMap = Maps.synchronizedBiMap(HashBiMap.create());
+
+    Map<String, ChartOptionSession> requestSessionMap = new HashMap<>();
+
     ConcurrentMap<String, List<JobKeywordDto>> requestIdJobCacheMap = new ConcurrentHashMap<>();
 
 }

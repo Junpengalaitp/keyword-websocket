@@ -29,6 +29,9 @@ public class ScheduleThreadPool {
      */
     public static void endTask(String requestId) {
         ScheduledFuture<?> scheduledFuture = requestIdScheduledFutureMap.get(requestId);
+        if (scheduledFuture == null) {
+            return;
+        }
         scheduledFuture.cancel(false);
         requestIdScheduledFutureMap.remove(requestId);
         log.info("requestId: " + requestId + " end, canceled ScheduledFuture");

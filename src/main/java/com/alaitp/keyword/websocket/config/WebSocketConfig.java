@@ -40,7 +40,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
          * for point to point messaging.
          */
         registry.enableSimpleBroker(pubSubDestinationPrefix, p2pDestinationPrefix);
-//        registry.setUserDestinationPrefix(p2pDestinationPrefix);
         /*
          * For configuring dedicated broker use the below code.
          */
