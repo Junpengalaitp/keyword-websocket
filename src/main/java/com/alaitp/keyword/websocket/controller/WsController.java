@@ -33,13 +33,12 @@ public class WsController {
     @MessageMapping("${keyword.destination}")
     public void onConnect(String requestId, Principal principal) {
         log.info("Received request id: {}, principal: {}", requestId, principal.getName());
-        if (CacheManager.userToRequestIdMap.containsKey(principal.getName())) {
+        if (CacheManager.requestIdToUserMap.containsValue(principal.getName())) {
             log.info("user send request before previous request complete, cancel scheduled thread");
-            ScheduleThreadPool.endTask(CacheManager.userToRequestIdMap.get(principal.getName()));
-            CacheManager.userToRequestIdMap.remove(principal.getName());
+            ScheduleThreadPool.endTask(CacheManager.requestIdToUserMap.inverse().get(principal.getName()));
+            CacheManager.requestIdToUserMap.inverse().remove(principal.getName());
         }
         CacheManager.requestIdToUserMap.put(requestId, principal.getName());
-        CacheManager.userToRequestIdMap.put(principal.getName(), requestId);
     }
 
     /**
