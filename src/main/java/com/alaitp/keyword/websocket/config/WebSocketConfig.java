@@ -10,7 +10,9 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    @Value("{keyword.endpoint}")
+    @Value("${alaitp.frontend.uri}")
+    private String frontendUri;
+    @Value("${keyword.endpoint}")
     private String wsEndpoint;
     @Value("${app.destination.prefix}")
     private String appDestinationPrefix;
@@ -49,6 +51,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint(wsEndpoint).setHandshakeHandler(new CustomHandshakeHandler()).setAllowedOrigins("*").withSockJS();
+        System.out.println("=======================================");
+        System.out.println(frontendUri);
+        System.out.println("=======================================");
+        registry.addEndpoint(wsEndpoint).setHandshakeHandler(new CustomHandshakeHandler()).setAllowedOrigins(frontendUri).withSockJS();
     }
 }
