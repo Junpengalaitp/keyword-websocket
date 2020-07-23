@@ -16,16 +16,16 @@ public class ConfigValue {
     public static Set<String> availableCategories;
     public static String keywordDestination;
     public static String chartDestination;
-    @Value("${pub-sub.destination.prefix}")
+    @Value("${value.ws.destination.pub-sub-prefix}")
     private String pubSubDestinationPrefixValue;
-    @Value("${available.keyword.category}")
-    private String categoriesValue;
-    @Value("${point-point.destination.prefix}")
+    @Value("${value.ws.destination.point-point-prefix}")
     private String p2pDestinationPrefixValue;
-    @Value("${keyword.destination}")
+    @Value("${value.ws.destination.keyword}")
     private String keywordDestinationValue;
-    @Value(("${chart.option.destination}"))
+    @Value(("${value.ws.destination.chart}"))
     private String chartDestinationValue;
+    @Value("${value.available-keyword-category}")
+    private String categoriesValue;
 
     @PostConstruct
     private void init() {

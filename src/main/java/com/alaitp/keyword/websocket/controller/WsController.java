@@ -30,7 +30,7 @@ public class WsController {
     /**
      * record the session(principal user) on ws connect, map the request id to users
      */
-    @MessageMapping("${keyword.destination}")
+    @MessageMapping("${value.ws.destination.keyword}")
     public void onConnect(String requestId, Principal principal) {
         log.info("Received request id: {}, principal: {}", requestId, principal.getName());
         if (CacheManager.requestIdToUserMap.containsValue(principal.getName())) {

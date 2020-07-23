@@ -1,0 +1,5 @@
+spring:
+  cloud:
+    config:
+      name: keyword-websocket
+      uri: http://localhost:8810

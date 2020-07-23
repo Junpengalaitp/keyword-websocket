@@ -4,17 +4,14 @@ import com.alaitp.keyword.websocket.dto.JobKeywordDto;
 import com.alibaba.fastjson.JSON;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
+import static com.alaitp.keyword.websocket.constant.ConfigValue.keywordDestination;
+import static com.alaitp.keyword.websocket.constant.ConfigValue.pubSubDestinationPrefix;
+
 @SpringBootTest
 class KeywordWebsocketApplicationTests {
-
-    @Value("${pub-sub.destination.prefix}")
-    private String pubSubDestinationPrefix;
-    @Value("${keyword.destination}")
-    private String keywordDestination;
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 

@@ -7,19 +7,18 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import static com.alaitp.keyword.websocket.constant.ConfigValue.p2pDestinationPrefix;
+import static com.alaitp.keyword.websocket.constant.ConfigValue.pubSubDestinationPrefix;
+
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Value("${alaitp.frontend.uri}")
     private String frontendUri;
-    @Value("${keyword.endpoint}")
+    @Value("${value.ws.destination.endpoint}")
     private String wsEndpoint;
-    @Value("${app.destination.prefix}")
+    @Value("${value.ws.destination.app-prefix}")
     private String appDestinationPrefix;
-    @Value("${pub-sub.destination.prefix}")
-    private String pubSubDestinationPrefix;
-    @Value("${point-point.destination.prefix}")
-    private String p2pDestinationPrefix;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -51,9 +50,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        System.out.println("=======================================");
-        System.out.println(frontendUri);
-        System.out.println("=======================================");
         registry.addEndpoint(wsEndpoint).setHandshakeHandler(new CustomHandshakeHandler()).setAllowedOrigins(frontendUri).withSockJS();
     }
 }
