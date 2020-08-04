@@ -3,6 +3,7 @@ package com.alaitp.keyword.websocket.cache;
 import com.alaitp.keyword.websocket.constant.Constant;
 import com.alaitp.keyword.websocket.dto.ChartOptionDto;
 import com.alaitp.keyword.websocket.dto.JobKeywordDto;
+import com.alaitp.keyword.websocket.message.ChartOptionSession;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -11,6 +12,8 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * store job keywords to calculate chart options data for front end
+ *
+ * @see ChartOptionSession
  */
 @Slf4j
 public class KeywordCache {

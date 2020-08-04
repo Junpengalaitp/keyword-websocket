@@ -45,7 +45,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
          * For configuring dedicated broker use the below code.
          */
         // brokerRegistry.enableStompBrokerRelay("/topic", "/queue");
-
     }
 
     @Override

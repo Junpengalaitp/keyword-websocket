@@ -16,7 +16,9 @@ import java.util.List;
 import static com.alaitp.keyword.websocket.cache.CacheManager.*;
 
 /**
- * each request id have it's own chart option sending session
+ * Each request id has its own chart option sending session
+ *
+ * @see KeywordCache
  */
 @Slf4j
 @Data

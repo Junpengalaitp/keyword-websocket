@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 1. send chart options on the time interval.
  * 2. if current thread is finished, notify frontend to disconnect web socket, clear thread and cache related to this request.
+ *
+ * @see ChartOptionSession
  */
 @Slf4j
 public class ScheduleSendThread extends Thread {
