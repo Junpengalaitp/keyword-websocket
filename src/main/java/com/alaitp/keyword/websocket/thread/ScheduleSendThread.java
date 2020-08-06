@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
  * @see ChartOptionSession
  */
 @Slf4j
-public class ScheduleSendThread extends Thread {
+public class ScheduleSendThread implements Runnable {
     private final ChartOptionSession chartOptionSession;
 
     public ScheduleSendThread(ChartOptionSession chartOptionSession) {
@@ -21,7 +21,6 @@ public class ScheduleSendThread extends Thread {
     @SneakyThrows
     @Override
     public void run() {
-        super.run();
         if (!chartOptionSession.isSessionEnd()) {
             chartOptionSession.sendOnInterval();
         } else {
