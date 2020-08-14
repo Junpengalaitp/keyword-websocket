@@ -1,4 +1,4 @@
-package com.alaitp.keyword.websocket;
+package com.alaitp.keyword.websocket.util;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;

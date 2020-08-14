@@ -10,8 +10,9 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 import static com.alaitp.keyword.websocket.constant.ConfigValue.p2pDestinationPrefix;
 import static com.alaitp.keyword.websocket.constant.ConfigValue.pubSubDestinationPrefix;
 
-@Configuration
+
 @EnableWebSocketMessageBroker
+@Configuration
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Value("${alaitp.frontend.uri}")
     private String frontendUri;

@@ -1,11 +1,11 @@
 package com.alaitp.keyword.websocket.message;
 
-import com.alaitp.keyword.websocket.ApplicationContextProvider;
 import com.alaitp.keyword.websocket.cache.KeywordCache;
 import com.alaitp.keyword.websocket.constant.ConfigValue;
 import com.alaitp.keyword.websocket.controller.WsController;
 import com.alaitp.keyword.websocket.dto.ChartOptionDto;
 import com.alaitp.keyword.websocket.dto.JobKeywordDto;
+import com.alaitp.keyword.websocket.util.ApplicationContextProvider;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
