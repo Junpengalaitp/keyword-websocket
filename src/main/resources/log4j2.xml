@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration status="error" monitorInterval="1800">
+    <properties>
+        <property name="LOG_HOME">/logs/keyword-websocket</property>
+        <property name="LOG_PATTERN">%d %-5level %logger{36} %L %M - %msg%xEx%n</property>
+        <property name="LOG_PATTERN_MQ">[%d]%msg%xEx%n</property>
+        <property name="LOG_SIZE">100MB</property>
+        <property name="LOG_SUFFIX">_%d{yyyyMMdd}-%i.log</property>
+        <property name="LOG_DEF_LEVEL">info</property>
+    </properties>
+
+    <appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <ThresholdFilter level="trace" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+        </Console>
+        <RollingRandomAccessFile name="SystemLog" fileName="${LOG_HOME}/keyword-websocket.log"
+                                 filePattern="${LOG_HOME}/keyword-websocket${LOG_SUFFIX}">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="${LOG_SIZE}"/>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+            <DefaultRolloverStrategy max="3"/>
+        </RollingRandomAccessFile>
+    </appenders>
+    <loggers>
+        <root level="${LOG_DEF_LEVEL}">
+            <appender-ref ref="SystemLog"/>
+            <appender-ref ref="Console"/>
+        </root>
+    </loggers>
+</configuration>

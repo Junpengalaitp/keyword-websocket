@@ -3,4 +3,4 @@ spring:
     config:
       name: keyword-websocket
       uri: http://localhost:8810
-      profile: test
+      profile: dev
