@@ -6,6 +6,7 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 
 import static com.alaitp.keyword.websocket.constant.ConfigValue.p2pDestinationPrefix;
 import static com.alaitp.keyword.websocket.constant.ConfigValue.pubSubDestinationPrefix;
@@ -50,6 +51,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
          * For configuring dedicated broker use the below code.
          */
         // brokerRegistry.enableStompBrokerRelay("/topic", "/queue");
+
     }
 
     @Override
@@ -58,4 +60,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setAllowedOrigins(frontendUri1, frontendUri2, frontendUri3)
                 .withSockJS();
     }
+
+    @Override
+    public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
+        registration.setSendBufferSizeLimit(512 * 1024 * 10);
+    }
+
 }
