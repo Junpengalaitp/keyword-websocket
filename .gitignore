@@ -30,8 +30,6 @@ build/
 ### VS Code ###
 .vscode/
 /.mvn/wrapper/
-/mvnw
-/mvnw.cmd
 
 *.log
 *.gz
