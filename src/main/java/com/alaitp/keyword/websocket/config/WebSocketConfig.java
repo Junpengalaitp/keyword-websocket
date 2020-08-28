@@ -15,12 +15,8 @@ import static com.alaitp.keyword.websocket.constant.ConfigValue.pubSubDestinatio
 @EnableWebSocketMessageBroker
 @Configuration
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    @Value("${alaitp.frontend.uri1}")
-    private String frontendUri1;
-    @Value("${alaitp.frontend.uri2}")
-    private String frontendUri2;
-    @Value("${alaitp.frontend.uri3}")
-    private String frontendUri3;
+    @Value("${alaitp.frontend.uri}")
+    private String frontendUri;
     @Value("${value.ws.destination.endpoint}")
     private String wsEndpoint;
     @Value("${value.ws.destination.app-prefix}")
@@ -57,7 +53,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint(wsEndpoint).setHandshakeHandler(new CustomHandshakeHandler())
-                .setAllowedOrigins(frontendUri1, frontendUri2, frontendUri3)
+                .setAllowedOrigins(frontendUri.split(","))
                 .withSockJS();
     }
 
@@ -65,5 +61,4 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
         registration.setSendBufferSizeLimit(512 * 1024 * 10);
     }
-
 }

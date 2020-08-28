@@ -2,5 +2,5 @@ spring:
   cloud:
     config:
       name: keyword-websocket
-      uri: http://localhost:8810
+      uri: http://localhost:8810,http://localhost:18810
       profile: dev
