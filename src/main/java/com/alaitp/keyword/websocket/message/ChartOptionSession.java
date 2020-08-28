@@ -31,17 +31,22 @@ public class ChartOptionSession {
      */
     private KeywordCache keywordCache = new KeywordCache();
     /**
-     * MIN_CHART_OPTION_RENDER_SECOND: the minimum seconds for sending total chart options for all jobs per request, in
-     *      case the job keywords coming too fast (cached), keep the front end chart race visual effect.
+     * MIN_CHART_OPTION_RENDER_SECOND: the minimum seconds for sending total chart options for all jobs per request,
+     * in case of the job keywords coming too fast (cached), keep the front end chart race visual effect steady.
+     * <p>
      * SEND_INTERVAL: time interval(milliseconds) of sending chart option message, avoiding front end rendering too often
+     * <p>
      * MIN_INTERVALS: minimum total intervals to send chart options per request.
      */
-    private static final int MIN_CHART_OPTION_RENDER_SECOND = 10;
-    public static final int SEND_INTERVAL = 250;
+    public static final int SEND_INTERVAL = 500;
+    private static final int MIN_CHART_OPTION_RENDER_SECOND = 20;
     private static final int MIN_INTERVALS = MIN_CHART_OPTION_RENDER_SECOND * 1000 / SEND_INTERVAL;
     /**
      * totalJobs: total amount of jobs for this request
-     * intervalPerJob: the time interval(milliseconds) between each jobs, if the next job received time is out side this interval, send it directly
+     * <p>
+     * intervalPerJob: the time interval(milliseconds) between each jobs, if the next job
+     * received time is out side this interval, send it directly.
+     * <p>
      * maxJobCountPerInterval: max amount of jobs to process for chart options per sending interval
      */
     private int totalJobs = 0;
@@ -49,6 +54,7 @@ public class ChartOptionSession {
     private int maxJobCountPerInterval;
     /**
      * lastSendTime: the last time when sent chart options.
+     *
      * jobOptionAmount: the amount of job processed.
      */
     private long lastSendTime = 0L;
