@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.LongAdder;
 
 import static com.alaitp.keyword.websocket.cache.CacheManager.*;
 
@@ -41,30 +42,32 @@ public class ChartOptionSession {
     public static final int SEND_INTERVAL = 500;
     private static final int MIN_CHART_OPTION_RENDER_SECOND = 20;
     private static final int MIN_INTERVALS = MIN_CHART_OPTION_RENDER_SECOND * 1000 / SEND_INTERVAL;
+    private final LongAdder jobOptionAmount = new LongAdder();
+    private int intervalPerJob = 0;
+    private int maxJobCountPerInterval;
     /**
      * totalJobs: total amount of jobs for this request
      * <p>
      * intervalPerJob: the time interval(milliseconds) between each jobs, if the next job
      * received time is out side this interval, send it directly.
      * <p>
-     * maxJobCountPerInterval: max amount of jobs to process for chart options per sending interval
+     * maxJobCountPerInterval: max amount of jobs to process for chart options per sending interval, at least 1
      */
     private int totalJobs = 0;
-    private int intervalPerJob = 0;
-    private int maxJobCountPerInterval;
     /**
      * lastSendTime: the last time when sent chart options.
-     *
-     * jobOptionAmount: the amount of job processed.
+     * <p>
+     * jobOptionAmount: the amount of job processed for this request id.
      */
     private long lastSendTime = 0L;
-    private int jobOptionAmount = 0;
 
     public ChartOptionSession(int totalJobs, String requestId) {
         this.requestId = requestId;
         this.totalJobs = totalJobs;
-        this.maxJobCountPerInterval = totalJobs / MIN_INTERVALS;
+        this.maxJobCountPerInterval = Math.max(totalJobs / MIN_INTERVALS, 1);
         this.intervalPerJob = SEND_INTERVAL * MIN_INTERVALS / totalJobs;
+        log.info("ChartOptionSession for request id: {} created, total jobs: {}, max job count per interval: {}, interval per job: {}",
+                this.requestId, this.totalJobs, this.maxJobCountPerInterval, this.intervalPerJob);
     }
 
     /**
@@ -85,7 +88,7 @@ public class ChartOptionSession {
         int processSize = Math.min(maxJobCountPerInterval, pendingSize);
         for (int i = 0; i < processSize; i++) {
             keywordCache.processPendingJobKeyword();
-            jobOptionAmount++;
+            jobOptionAmount.increment();
         }
         this.send();
         log.debug("========> chart options sent on interval, size: " + processSize);
@@ -108,7 +111,7 @@ public class ChartOptionSession {
     }
 
     public boolean isSessionEnd() {
-        return jobOptionAmount >= this.totalJobs - 1;
+        return jobOptionAmount.intValue() == this.totalJobs;
     }
 
     public void endSession() {

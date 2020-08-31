@@ -50,7 +50,7 @@ public class WsController {
         jobKeywordJson.put(MSG_TYPE, TYPE_JOB_KEYWORD);
         String user = CacheManager.requestIdToUserMap.get(requestId);
         if (user == null) {
-            CacheManager.requestIdJobCacheMap.putIfAbsent(requestId, new ArrayList<>());
+            CacheManager.requestIdJobCacheMap.computeIfAbsent(requestId, k -> new ArrayList<>());
             CacheManager.requestIdJobCacheMap.get(requestId).add(jobKeywordDto);
         } else {
             messagingTemplate.convertAndSendToUser(user, keywordDestination, jobKeywordJson);

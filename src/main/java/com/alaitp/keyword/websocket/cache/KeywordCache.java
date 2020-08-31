@@ -52,10 +52,9 @@ public class KeywordCache {
             String category = keywordDto.getCategory();
             String combinedCategory = Constant.combinedCategoryMap.getOrDefault(category, category);
             String keyword = keywordDto.getKeyword();
-            keywordChartOptionMap.putIfAbsent(combinedCategory, new ConcurrentHashMap<>());
+            keywordChartOptionMap.computeIfAbsent(combinedCategory, k -> new ConcurrentHashMap<>());
             ConcurrentMap<String, Integer> keywordCount = keywordChartOptionMap.get(combinedCategory);
-            keywordCount.putIfAbsent(keyword, 1);
-            keywordCount.put(keyword, keywordCount.get(keyword) + 1);
+            keywordCount.merge(keyword, 1, Integer::sum);
         }
     }
 
