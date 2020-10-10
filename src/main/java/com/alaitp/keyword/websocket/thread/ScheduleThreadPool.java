@@ -10,6 +10,9 @@ import static com.alaitp.keyword.websocket.message.ChartOptionSession.SEND_INTER
 
 @Slf4j
 public class ScheduleThreadPool {
+    private ScheduleThreadPool() {
+    }
+
     private static final ConcurrentMap<String, ScheduledFuture<?>> REQUEST_ID_SCHEDULED_FUTURE_MAP = new ConcurrentHashMap<>();
     /**
      * Because of this is a ScheduleThreadPool, the thread won't use cpu while on the fixed delay time interval

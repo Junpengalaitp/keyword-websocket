@@ -9,14 +9,14 @@ import java.util.function.Supplier;
 public class Builder<T> {
     private final Supplier<T> supplier;
 
-    private List<Consumer<T>> instanceModifiers = new ArrayList<>();
+    private final List<Consumer<T>> instanceModifiers = new ArrayList<>();
 
     public Builder(Supplier<T> supplier) {
         this.supplier = supplier;
     }
 
     public static <T> Builder<T> of(Supplier<T> supplier) {
-        return new Builder<T>(supplier);
+        return new Builder<>(supplier);
     }
 
     public <U> Builder<T> with(BiConsumer<T, U> consumer, U value) {

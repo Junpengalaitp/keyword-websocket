@@ -116,9 +116,9 @@ public class ChartOptionSession {
 
     public void endSession() {
         wsController.sendSessionEndMsg(requestId);
-        requestSessionMap.remove(requestId);
-        requestIdToUserMap.remove(requestId);
-        requestIdJobCacheMap.remove(requestId);
+        REQUEST_SESSION_MAP.remove(requestId);
+        REQUEST_ID_TO_USER_MAP.remove(requestId);
+        REQUEST_ID_JOB_CACHE_MAP.remove(requestId);
         log.info("all job processed, current request end, request id: " + requestId);
     }
 

@@ -22,8 +22,8 @@ import static com.alaitp.keyword.websocket.constant.Constant.*;
 @Slf4j
 @Controller
 public class WsController {
-    public static final String chartDestination = ConfigValue.p2pDestinationPrefix + ConfigValue.chartDestination;
-    private static final String keywordDestination = ConfigValue.p2pDestinationPrefix + ConfigValue.keywordDestination;
+    public static final String CHART_DESTINATION = ConfigValue.p2pDestinationPrefix + ConfigValue.chartDestination;
+    private static final String KEYWORD_DESTINATION = ConfigValue.p2pDestinationPrefix + ConfigValue.keywordDestination;
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
@@ -33,12 +33,12 @@ public class WsController {
     @MessageMapping("${value.ws.destination.keyword}")
     public void onConnect(String requestId, Principal principal) {
         log.info("Received request id: {}, principal: {}", requestId, principal.getName());
-        if (CacheManager.requestIdToUserMap.containsValue(principal.getName())) {
+        if (CacheManager.REQUEST_ID_TO_USER_MAP.containsValue(principal.getName())) {
             log.info("user send request before previous request complete, cancel scheduled thread");
-            ScheduleThreadPool.endTask(CacheManager.requestIdToUserMap.inverse().get(principal.getName()));
-            CacheManager.requestIdToUserMap.inverse().remove(principal.getName());
+            ScheduleThreadPool.endTask(CacheManager.REQUEST_ID_TO_USER_MAP.inverse().get(principal.getName()));
+            CacheManager.REQUEST_ID_TO_USER_MAP.inverse().remove(principal.getName());
         }
-        CacheManager.requestIdToUserMap.put(requestId, principal.getName());
+        CacheManager.REQUEST_ID_TO_USER_MAP.put(requestId, principal.getName());
     }
 
     /**
@@ -48,12 +48,12 @@ public class WsController {
     public void sendJobKeyword(JobKeywordDto jobKeywordDto, String requestId) {
         JSONObject jobKeywordJson = JSON.parseObject(JSON.toJSONString(jobKeywordDto));
         jobKeywordJson.put(MSG_TYPE, TYPE_JOB_KEYWORD);
-        String user = CacheManager.requestIdToUserMap.get(requestId);
+        String user = CacheManager.REQUEST_ID_TO_USER_MAP.get(requestId);
         if (user == null) {
-            CacheManager.requestIdJobCacheMap.computeIfAbsent(requestId, k -> new ArrayList<>());
-            CacheManager.requestIdJobCacheMap.get(requestId).add(jobKeywordDto);
+            CacheManager.REQUEST_ID_JOB_CACHE_MAP.computeIfAbsent(requestId, k -> new ArrayList<>());
+            CacheManager.REQUEST_ID_JOB_CACHE_MAP.get(requestId).add(jobKeywordDto);
         } else {
-            messagingTemplate.convertAndSendToUser(user, keywordDestination, jobKeywordJson);
+            messagingTemplate.convertAndSendToUser(user, KEYWORD_DESTINATION, jobKeywordJson);
             sendCachedJobKeywords(requestId);
         }
     }
@@ -62,13 +62,13 @@ public class WsController {
      * send cached keywords
      */
     private void sendCachedJobKeywords(String requestId) {
-        List<JobKeywordDto> cacheJobKeyword = CacheManager.requestIdJobCacheMap.get(requestId);
+        List<JobKeywordDto> cacheJobKeyword = CacheManager.REQUEST_ID_JOB_CACHE_MAP.get(requestId);
         if (cacheJobKeyword != null && !cacheJobKeyword.isEmpty()) {
-            String user = CacheManager.requestIdToUserMap.get(requestId);
+            String user = CacheManager.REQUEST_ID_TO_USER_MAP.get(requestId);
             for (JobKeywordDto jobKeywordCache : cacheJobKeyword) {
                 JSONObject jobKeywordJson = JSON.parseObject(JSON.toJSONString(jobKeywordCache));
                 jobKeywordJson.put(MSG_TYPE, TYPE_JOB_KEYWORD);
-                messagingTemplate.convertAndSendToUser(user, keywordDestination, jobKeywordJson);
+                messagingTemplate.convertAndSendToUser(user, KEYWORD_DESTINATION, jobKeywordJson);
             }
             log.info(cacheJobKeyword.size() + " cached job keyword sent");
             cacheJobKeyword.clear();
@@ -76,12 +76,12 @@ public class WsController {
     }
 
     public void sendChartOptions(List<ChartOptionDto> chartOptionDtoList, String requestId) {
-        String user = CacheManager.requestIdToUserMap.get(requestId);
-        messagingTemplate.convertAndSendToUser(user, chartDestination, chartOptionDtoList);
+        String user = CacheManager.REQUEST_ID_TO_USER_MAP.get(requestId);
+        messagingTemplate.convertAndSendToUser(user, CHART_DESTINATION, chartOptionDtoList);
     }
 
     public void sendSessionEndMsg(String requestId) {
-        String user = CacheManager.requestIdToUserMap.get(requestId);
-        messagingTemplate.convertAndSendToUser(user, chartDestination, TYPE_SESSION_END);
+        String user = CacheManager.REQUEST_ID_TO_USER_MAP.get(requestId);
+        messagingTemplate.convertAndSendToUser(user, CHART_DESTINATION, TYPE_SESSION_END);
     }
 }

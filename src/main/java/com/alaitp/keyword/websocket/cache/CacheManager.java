@@ -16,10 +16,10 @@ public interface CacheManager {
     /**
      * use Guava's BiMap for two ways finding
      */
-    BiMap<String, String> requestIdToUserMap = Maps.synchronizedBiMap(HashBiMap.create());
+    BiMap<String, String> REQUEST_ID_TO_USER_MAP = Maps.synchronizedBiMap(HashBiMap.create());
 
-    Map<String, ChartOptionSession> requestSessionMap = new HashMap<>();
+    Map<String, ChartOptionSession> REQUEST_SESSION_MAP = new HashMap<>();
 
-    ConcurrentMap<String, List<JobKeywordDto>> requestIdJobCacheMap = new ConcurrentHashMap<>();
+    ConcurrentMap<String, List<JobKeywordDto>> REQUEST_ID_JOB_CACHE_MAP = new ConcurrentHashMap<>();
 
 }

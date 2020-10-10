@@ -48,8 +48,8 @@ public class MsgReceiver {
     private ChartOptionSession getChartOptionSession(JSONObject keywordJson) {
         String requestId = keywordJson.getString(REQUEST_ID);
         int totalJobs = keywordJson.getInteger(TOTAL_JOB_COUNT);
-        CacheManager.requestSessionMap.computeIfAbsent(requestId, k -> new ChartOptionSession(totalJobs, requestId));
-        return CacheManager.requestSessionMap.get(requestId);
+        CacheManager.REQUEST_SESSION_MAP.computeIfAbsent(requestId, k -> new ChartOptionSession(totalJobs, requestId));
+        return CacheManager.REQUEST_SESSION_MAP.get(requestId);
     }
 
     private boolean isRequestStart(String requestId) {
