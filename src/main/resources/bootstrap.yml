@@ -1,6 +1,14 @@
 spring:
+  application:
+    name: keyword-websocket
   cloud:
-    config:
-      name: keyword-websocket
-      uri: http://192.168.1.69:8810
-      profile: dev
+    kubernetes:
+      config:
+        enabled: true
+        name: keyword-websocket
+        namespace: default
+        sources:
+          - namespace: default
+            name: alaitp-shared
+          - namespace: default
+            name: alaitp-keyword-websocket
