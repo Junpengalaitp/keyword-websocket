@@ -25,7 +25,8 @@ import static com.alaitp.keyword.websocket.cache.CacheManager.*;
 @Data
 @NoArgsConstructor
 public class ChartOptionSession {
-    private WsController wsController = ApplicationContextProvider.getBean(WsController.class);
+    private static final WsController wsController = ApplicationContextProvider.getBean(WsController.class);
+    private static final ConfigValue configValue = ApplicationContextProvider.getBean(ConfigValue.class);
     private String requestId;
     /**
      * cache job keywords for generating chart options for top 10.
@@ -96,7 +97,7 @@ public class ChartOptionSession {
 
     private List<ChartOptionDto> getTop10ChartOptions() {
         List<ChartOptionDto> chartOptionDtoList = new ArrayList<>();
-        for (String category : ConfigValue.availableCategories) {
+        for (String category : configValue.getCategories().split(",")) {
             ChartOptionDto chartOptionDto = keywordCache.getTopKeywordByCategory(category, 10);
             chartOptionDtoList.add(chartOptionDto);
         }
