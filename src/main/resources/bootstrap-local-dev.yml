@@ -1,0 +1,15 @@
+# --spring.cloud.bootstrap.name=bootstrap-local-dev
+spring:
+  application:
+    name: keyword-websocket
+  cloud:
+    kubernetes:
+      config:
+        enabled: true
+        name: keyword-websocket
+        namespace: local-dev
+        sources:
+          - namespace: local-dev
+            name: alaitp-shared
+          - namespace: local-dev
+            name: alaitp-keyword-websocket
