@@ -41,7 +41,7 @@ public class ConfigValue {
     }
 
     public String keywordSendingDestination() {
-        return pubSubDestinationPrefix + keywordDestination;
+        return p2pDestinationPrefix + keywordDestination;
     }
 
     public String chartSendingDestination() {
