@@ -3,7 +3,8 @@ import sys
 
 
 app_name = "keyword-ws"
-docker_tag = app_name + ":" + "prod"
+docker_registry= "localhost:5555"
+docker_registry_tag = docker_registry + "/" + app_name
 
 def git_pull():
     run_cmd("git pull")
@@ -39,13 +40,13 @@ def package_jar():
     run_cmd("mvn package -Dmaven.test.skip=true")
 
 def build_image():
-    print_cmd("eval $(minikube docker-env)")
-    print_cmd("docker build --tag=" + docker_tag + " --force-rm=true .")
-    print_cmd("eval $(minikube docker-env -u)")
+    run_cmd("docker build --tag=" + app_name + " --force-rm=true .")
+    run_cmd("docker tag " + app_name + " " + docker_registry_tag)
+    run_cmd("docker push " + docker_registry_tag)
 
 def k8s_deploy():
-    print_cmd("kubectl delete deployment " + app_name)
-    print_cmd("kubectl create deployment " + app_name + " --image=" + docker_tag)
+    run_cmd("kubectl delete deployment " + app_name)
+    run_cmd("kubectl create deployment " + app_name + " --image=" + docker_registry_tag)
 
 
 def run_sudo_cmd(cmd):
@@ -56,9 +57,6 @@ def run_sudo_cmd(cmd):
 def run_cmd(cmd):
     print cmd
     os.system(cmd)
-
-def print_cmd(cmd):
-    print cmd
 
 if __name__ == '__main__':
     git_pull()
