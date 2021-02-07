@@ -1,0 +1,79 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: test
+  name: alaitp-keyword-websocket
+data:
+  application.yaml: |-
+    server:
+      port: 8816
+
+    eureka:
+      instance:
+        instance-id: "${spring.application.name}:${spring.application.instance_id:${random.value}}"
+        prefer-ip-address: true
+
+    spring:
+      application:
+        name: keyword-websocket
+
+    value:
+      ws:
+        destination:
+          endpoint: keyword-ws
+          app-prefix: /app
+          pub-sub-prefix: /topic
+          point-point-prefix: /queue
+          keyword: /keyword
+          chart: /chart
+
+      available-keyword-category: PROGRAMMING_LANGUAGE,OTHER_LANGUAGE,LIBRARY,FRAMEWORK,DATA_STORAGE,DATA_TRANSMISSION,DIVISION,PLATFORM,APPROACH,SOFTWARE_ENGINEERING,GENERAL,SOFT_SKILL,PROTOCOL,COMPUTER_SCIENCE,AI
+
+
+    logging:
+      level:
+        org:
+          springframework:
+            web: info
+      file: "${spring.application.name}.log"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: test
+  name: keyword-ws
+  labels:
+    app: keyword-ws
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keyword-ws
+  template:
+    metadata:
+      labels:
+        app: keyword-ws
+    spec:
+      containers:
+        - name: keyword-ws
+          image: localhost:5555/keyword-ws
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8816
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: test
+  name: keyword-ws
+  labels:
+    app: keyword-ws
+spec:
+  type: NodePort
+  ports:
+    - port: 8816
+      nodePort: 31816
+  selector:
+    app: keyword-ws

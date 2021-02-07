@@ -7,9 +7,9 @@ spring:
       config:
         enabled: true
         name: keyword-websocket
-        namespace: default
+        namespace: test
         sources:
-          - namespace: default
+          - namespace: test
             name: alaitp-shared
-          - namespace: default
+          - namespace: test
             name: alaitp-keyword-websocket

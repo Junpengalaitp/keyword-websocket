@@ -6,6 +6,8 @@ app_name = "keyword-ws"
 docker_registry= "localhost:5555"
 docker_registry_tag = docker_registry + "/" + app_name
 
+env = sys.argv[1] if len(sys.argv) > 1 else "dev"
+
 def git_pull():
     run_cmd("git pull")
 
@@ -14,8 +16,6 @@ def change_config_file():
 
     bootstrap_yml = open("src/main/resources/bootstrap.yml", "w")
     bootstrap_yml.truncate()
-
-    env = sys.argv[1] if len(sys.argv) > 1 else "dev"
 
     if env == "dev":
         env_yml = "bootstrap-dev.yml"
@@ -45,8 +45,7 @@ def build_image():
     run_cmd("docker push " + docker_registry_tag)
 
 def k8s_deploy():
-    run_cmd("kubectl delete deployment " + app_name)
-    run_cmd("kubectl create deployment " + app_name + " --image=" + docker_registry_tag)
+    run_cmd("kubectl apply -f kubernetes.yaml")
 
 
 def run_sudo_cmd(cmd):
