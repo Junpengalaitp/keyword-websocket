@@ -71,9 +71,8 @@ metadata:
   labels:
     app: keyword-ws
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
     - port: 8816
-      nodePort: 31816
   selector:
     app: keyword-ws
