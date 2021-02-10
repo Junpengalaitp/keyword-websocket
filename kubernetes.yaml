@@ -57,7 +57,7 @@ spec:
       containers:
         - name: keyword-ws
           image: localhost:5555/keyword-ws
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8816
 ---
