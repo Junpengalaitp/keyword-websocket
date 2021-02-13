@@ -73,3 +73,19 @@ spec:
     - port: 8816
   selector:
     app: keyword-ws
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keyword-ws-node-port
+  labels:
+    app: keyword-ws
+spec:
+  type: NodePort
+  selector:
+    app: keyword-ws
+  ports:
+    - protocol: TCP
+      port: 8816
+      targetPort: 8816
+      nodePort: 30816
