@@ -4,7 +4,7 @@ keyword-websocket
 
 ## Author
 
-* **Junpeng He** - *Initial work* - [alaitp](https://junpengalaitp.github.io/alaitp-frontend/)
+* **Junpeng He** - *Initial work* - [junpenghe.com](https://junpenghe.com)
 
 ## Main Feature
 * receive job keyword result and send to user
